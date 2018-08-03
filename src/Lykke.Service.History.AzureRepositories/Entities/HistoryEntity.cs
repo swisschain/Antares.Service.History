@@ -1,32 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Lykke.Service.History.Core.Domain;
+using System.ComponentModel.DataAnnotations.Schema;
+using Common;
+using Lykke.Service.History.Core.Domain.Enums;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.History.PostgresRepositories.Entities
 {
-    public class HistoryEntity
+    [Table(Constants.HistoryTableName)]
+    internal class HistoryEntity
     {
-        public Guid Id { get; set; }
-
-        public Guid WalletId { get; set; }
-
-        public string AssetId { get; set; }
-
-        public string AssetPairId { get; set; }
-
-        public decimal Amount { get; set; }
-
-        public decimal? Price { get; set; }
-
+        [Column("type")]
         public HistoryType Type { get; set; }
 
-        public HistoryState State { get; set; }
+        [Column("id")]
+        public Guid Id { get; set; }
 
+        [Column("wallet_id")]
+        public Guid WalletId { get; set; }
+
+        [Column("asset_id")]
+        public string AssetId { get; set; }
+
+        [Column("assetpair_id")]
+        public string AssetPairId { get; set; }
+
+        [Column("volume")]
+        public decimal Volume { get; set; }
+
+        [Column("create_dt")]
         public DateTime Timestamp { get; set; }
 
-        public decimal? FeeSize { get; set; }
+        [Column("context", TypeName = "jsonb")]
+        public string Context
+        {
+            get => ContextObject == null ? null : JsonConvert.SerializeObject(ContextObject, new JsonSerializerSettings
+            {
+                DefaultValueHandling = DefaultValueHandling.Ignore
+            });
+            set => ContextObject = value?.DeserializeJson<HistoryEntityContext>();
+        }
 
-        public string Context { get; set; }
+        [NotMapped]
+        public HistoryEntityContext ContextObject { get; set; }
     }
 }

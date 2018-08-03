@@ -3,6 +3,9 @@ using MessagePack;
 
 namespace Lykke.Service.History.Contracts.Cqrs.Commands
 {
+    /// <summary>
+    /// Save cashin to history command
+    /// </summary>
     [MessagePackObject(true)]
     public class SaveCashinCommand
     {
@@ -10,10 +13,12 @@ namespace Lykke.Service.History.Contracts.Cqrs.Commands
 
         public Guid WalletId { get; set; }
 
-        public decimal Amount { get; set; }
+        public decimal Volume { get; set; }
 
         public string AssetId { get; set; }
 
         public DateTime Timestamp { get; set; }
+
+        public decimal? FeeSize { get; set; }
     }
 }

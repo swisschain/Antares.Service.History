@@ -37,7 +37,7 @@
     <ProjectReference Include="..\Lykke.Service.History.Services\Lykke.Service.History.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <ItemGroup>

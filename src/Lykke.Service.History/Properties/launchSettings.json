@@ -3,7 +3,8 @@
     "History local dev settings": {
       "commandName": "Project",
       "environmentVariables": {
-        "SettingsUrl": "http://settingsv2.lykke-settings.svc.cluster.local/Home/RepositoryFile/bab3377f-50ea-4ba4-bf99-1b1953a8153c/Lykke.Service.History",
+        "ENV_INFO": "home",
+        "SettingsUrl": "http://settingsv2.lykke-settings.svc.cluster.local/Home/RepositoryFile/c6462006-d3b2-44d9-9b47-0989b05700ea/Lykke.Service.History",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },

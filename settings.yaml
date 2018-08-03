@@ -1,0 +1,25 @@
+HistoryService:
+    Db: 
+        PostgresDataConnString:
+            settings-key: HistoryService-PostgresDataConnString
+        LogsConnString:
+            settings-key: HistoryService-LogsConnString
+            types:
+                - AzureTableStorage
+    Cqrs:
+        RabbitConnString:
+            settings-key: CqrsRabbitConnString
+            types:
+                - RabbitMq
+MonitoringServiceClient:
+    MonitoringServiceUrl:
+        settings-key: MonitoringServiceUrl
+SlackNotifications:
+    AzureQueue:
+        ConnectionString:
+            settings-key: SlackNotificationsConnString
+            types:
+                - AzureTableStorage
+        QueueName:
+            settings-key: SlackQueueName
+   

@@ -13,24 +13,24 @@ using Lykke.Service.History.Core.Domain.History;
 
 namespace Lykke.Service.History.Workflow.Handlers
 {
-    public class CashinCommandHandler
+    public class CashoutCommandHandler
     {
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _logger;
 
-        public CashinCommandHandler(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
+        public CashoutCommandHandler(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
         {
             _historyRecordsRepository = historyRecordsRepository;
             _logger = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(SaveCashinCommand command)
+        public async Task<CommandHandlingResult> Handle(SaveCashoutCommand command)
         {
-            var entity = Mapper.Map<Cashin>(command);
+            var entity = Mapper.Map<Cashout>(command);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
             {
-                _logger.Warning($"Skipped duplicated cashin record", context: new { id = command.Id });
+                _logger.Warning($"Skipped duplicated cashout record", context: new { id = command.Id });
             }
 
             return CommandHandlingResult.Ok();

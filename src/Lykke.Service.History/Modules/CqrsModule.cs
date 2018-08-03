@@ -37,6 +37,11 @@ namespace Lykke.Service.History.Modules
             };
             var rabbitMqEndpoint = rabbitMqSettings.Endpoint.ToString();
 
+            builder.RegisterType<CashinCommandHandler>();
+            builder.RegisterType<CashoutCommandHandler>();
+            builder.RegisterType<TransferCommandHandler>();
+            builder.RegisterType<ExecutionCommandHandler>();
+
             builder.Register(ctx =>
             {
                 var logFactory = ctx.Resolve<ILogFactory>();
@@ -82,7 +87,19 @@ namespace Lykke.Service.History.Modules
                 Register.BoundedContext(BoundedContext.Name)
                     .ListeningCommands(typeof(SaveCashinCommand))
                     .On(defaultRoute)
-                    .WithCommandsHandler<CashinCommandHandler>());
+                    .WithCommandsHandler<CashinCommandHandler>()
+
+                    .ListeningCommands(typeof(SaveCashoutCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<CashoutCommandHandler>()
+
+                    .ListeningCommands(typeof(SaveTransferCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<TransferCommandHandler>()
+
+                    .ListeningCommands(typeof(SaveExecutionCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<ExecutionCommandHandler>());
         }
     }
 }

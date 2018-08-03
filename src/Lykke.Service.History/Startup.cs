@@ -1,16 +1,12 @@
 ﻿using JetBrains.Annotations;
-using Lykke.Logs.Loggers.LykkeSlack;
 using Lykke.Sdk;
-using Lykke.Sdk.Health;
-using Lykke.Sdk.Middleware;
 using Lykke.Service.History.Settings;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using AutoMapper;
-using Lykke.Service.History.Profiles;
+using Lykke.Service.History.AutoMapper;
+using Lykke.Service.History.PostgresRepositories.Mappings;
 
 namespace Lykke.Service.History
 {
@@ -19,7 +15,7 @@ namespace Lykke.Service.History
     {
         private readonly LykkeSwaggerOptions _swaggerOptions = new LykkeSwaggerOptions
         {
-            ApiTitle = "History API",
+            ApiTitle = "HistoryRecord API",
             ApiVersion = "v1"
         };
 
@@ -29,10 +25,9 @@ namespace Lykke.Service.History
             Mapper.Initialize(cfg =>
             {
                 cfg.AddProfiles(typeof(ServiceProfile));
+                cfg.AddProfiles(typeof(RepositoryProfile));
             });
-
-            Mapper.AssertConfigurationIsValid();
-
+            
             return services.BuildServiceProvider<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
@@ -47,7 +42,7 @@ namespace Lykke.Service.History
                     logs.Extended = extendedLogs =>
                     {
                         // For example, you could add additional slack channel like this:
-                        extendedLogs.AddAdditionalSlackChannel("History", channelOptions =>
+                        extendedLogs.AddAdditionalSlackChannel("HistoryRecord", channelOptions =>
                         {
                             channelOptions.MinLogLevel = LogLevel.Information;
                         });

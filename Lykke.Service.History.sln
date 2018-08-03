@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		README.md = README.md
-		settings.txt = settings.txt
+		settings.yaml = settings.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. Client", "3. Client", "{C9A2CFDE-EA32-4946-B679-7CE6EFA816B8}"
@@ -30,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.Tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Tests", "4. Tests", "{8F9036B1-5106-4C69-B2D2-B78EE52687A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.History.Contracts", "client\Lykke.Service.History.Contracts\Lykke.Service.History.Contracts.csproj", "{2064A769-4F07-4E1C-A946-7CFF768704F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.Contracts", "client\Lykke.Service.History.Contracts\Lykke.Service.History.Contracts.csproj", "{2064A769-4F07-4E1C-A946-7CFF768704F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
