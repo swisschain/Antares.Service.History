@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
@@ -29,7 +32,14 @@ namespace Lykke.Service.History.Workflow.Handlers
 
         public async Task<CommandHandlingResult> Handle(SaveExecutionCommand command)
         {
+            var sw = Stopwatch.StartNew();
+            var builder = new StringBuilder();
+            builder.AppendLine($"Started {DateTime.UtcNow}");
+
             var orders = Mapper.Map<IEnumerable<Order>>(command).ToList();
+
+            builder.AppendLine($"Mapping, elasped: {sw.ElapsedMilliseconds}");
+            sw.Restart();
 
             foreach (var order in orders)
             {
@@ -37,6 +47,9 @@ namespace Lykke.Service.History.Workflow.Handlers
                 if (!result)
                     _logger.Warning($"Order {order.Id} was not updated, sequence {command.SequenceNumber}");
             }
+
+            builder.AppendLine($"Mapping, orders: {sw.ElapsedMilliseconds}");
+            sw.Restart();
 
             var trades = orders.SelectMany(x => x.Trades);
 
@@ -47,6 +60,11 @@ namespace Lykke.Service.History.Workflow.Handlers
                 if (!result)
                     _logger.Warning($"Bulk was not inserted, sequence {command.SequenceNumber}, bulk: {i}");
             }
+
+            builder.AppendLine($"Mapping, trades: {sw.ElapsedMilliseconds}");
+            sw.Restart();
+
+            _logger.Info(builder.ToString());
 
             return CommandHandlingResult.Ok();
         }
