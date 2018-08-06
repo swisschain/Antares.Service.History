@@ -81,7 +81,7 @@ namespace Lykke.Service.History.Modules
                 true,
                 Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
                     "RabbitMq",
-                    Messaging.Serialization.SerializationFormat.MessagePack,
+                    Messaging.Serialization.SerializationFormat.ProtoBuf,
                     environment: "lykke")),
 
                 Register.BoundedContext(BoundedContext.Name)

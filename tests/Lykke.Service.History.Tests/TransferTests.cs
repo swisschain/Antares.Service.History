@@ -51,7 +51,7 @@ namespace Lykke.Service.History.Tests
             Assert.Equal(-Math.Abs(command.Volume), transferFrom.Volume);
             Assert.Equal(Math.Abs(command.Volume), transferTo.Volume);
 
-            Assert.Equal(0, transferFrom.FeeSize);
+            Assert.Null(transferFrom.FeeSize);
             Assert.Equal(command.FeeSize, transferTo.FeeSize);
         }
 
@@ -73,7 +73,7 @@ namespace Lykke.Service.History.Tests
                 AssetId = "EUR",
                 Timestamp = DateTime.UtcNow,
                 FeeSize = 0.5M,
-                FeeWalletId = walletTo
+                FeeSourceWalletId = walletTo
             };
 
             cqrs.SendCommand(command, BoundedContext.Name, BoundedContext.Name);

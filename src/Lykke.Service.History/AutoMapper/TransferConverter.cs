@@ -20,7 +20,7 @@ namespace Lykke.Service.History.AutoMapper
                 Volume = -Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
                 AssetId = source.AssetId,
-                FeeSize = source.FromWalletId == source.FeeWalletId ? source.FeeSize.GetValueOrDefault() : 0
+                FeeSize = source.FromWalletId == source.FeeSourceWalletId ? source.FeeSize : null
             };
 
             yield return new Transfer
@@ -30,7 +30,7 @@ namespace Lykke.Service.History.AutoMapper
                 Volume = Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
                 AssetId = source.AssetId,
-                FeeSize = source.ToWalletId == source.FeeWalletId ? source.FeeSize.GetValueOrDefault() : 0
+                FeeSize = source.ToWalletId == source.FeeSourceWalletId ? source.FeeSize: null
             };
         }
     }

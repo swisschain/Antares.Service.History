@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Lykke.Service.History.Core.Domain.Enums;
 
 namespace Lykke.Service.History.Core.Domain.History
 {
@@ -12,7 +13,7 @@ namespace Lykke.Service.History.Core.Domain.History
 
         public decimal Price { get; set; }
 
-        public decimal FeeSize { get; set; }
+        public decimal? FeeSize { get; set; }
 
         public string FeeAssetId { get; set; }
 
@@ -25,5 +26,7 @@ namespace Lykke.Service.History.Core.Domain.History
         public decimal OppositeVolume { get; set; }
 
         public Guid OrderId { get; set; }
+
+        public override HistoryType Type => HistoryType.Trade;
     }
 }

@@ -10,6 +10,8 @@ namespace Lykke.Service.History.Core.Domain.History
 
         public HistoryState State { get; set; }
 
-        public decimal FeeSize { get; set; }
+        public decimal? FeeSize { get; set; }
+
+        public override HistoryType Type => HistoryType.CashIn;
     }
 }

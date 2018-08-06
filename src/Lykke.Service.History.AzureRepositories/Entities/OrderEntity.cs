@@ -55,16 +55,16 @@ namespace Lykke.Service.History.PostgresRepositories.Entities
         public string RejectReason { get; set; }
 
         [Column("lower_limit_price")]
-        public decimal LowerLimitPrice { get; set; }
+        public decimal? LowerLimitPrice { get; set; }
 
         [Column("lower_price")]
-        public decimal LowerPrice { get; set; }
+        public decimal? LowerPrice { get; set; }
 
         [Column("upper_limit_price")]
-        public decimal UpperLimitPrice { get; set; }
+        public decimal? UpperLimitPrice { get; set; }
 
         [Column("upper_price")]
-        public decimal UpperPrice { get; set; }
+        public decimal? UpperPrice { get; set; }
 
         [Column("straight")]
         public bool Straight { get; set; }

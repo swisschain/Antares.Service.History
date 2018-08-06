@@ -23,7 +23,7 @@ namespace Lykke.Service.History.PostgresRepositories.Entities
         /// <summary>
         /// Fee size
         /// </summary>
-        public decimal FeeSize { get; set; }
+        public decimal? FeeSize { get; set; }
 
         /// <summary>
         /// Fee asset

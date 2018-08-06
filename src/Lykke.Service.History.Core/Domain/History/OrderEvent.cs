@@ -14,5 +14,7 @@ namespace Lykke.Service.History.Core.Domain.History
         public decimal Price { get; set; }
 
         public OrderStatus Status { get; set; }
+
+        public override HistoryType Type => HistoryType.OrderEvent;
     }
 }
