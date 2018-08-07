@@ -10,7 +10,9 @@ using Lykke.Cqrs.Configuration;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
+using Lykke.Sdk;
 using Lykke.Service.History.Settings;
+using Lykke.Service.History.Workflow.ExecutionProcessing;
 using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
@@ -37,10 +39,15 @@ namespace Lykke.Service.History.Modules
             };
             var rabbitMqEndpoint = rabbitMqSettings.Endpoint.ToString();
 
+            builder.RegisterType<StartupManager>().As<IStartupManager>();
+
+            builder.RegisterType<ExecutionQueueReader>()
+                .WithParameter(TypedParameter.From(_settings.RabbitConnString))
+                .SingleInstance();
+
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
-            builder.RegisterType<ExecutionProjection>();
 
             builder.Register(ctx =>
             {
@@ -99,12 +106,7 @@ namespace Lykke.Service.History.Modules
                     .ListeningEvents(typeof(CashTransferProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
-
-                    .ListeningEvents(typeof(ExecutionProcessedEvent))
-                    .From(PostProcessingBoundedContext.Name)
-                    .On(defaultRoute)
-                    .WithProjection(typeof(ExecutionProjection), PostProcessingBoundedContext.Name));
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name));
         }
     }
 }

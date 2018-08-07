@@ -24,7 +24,7 @@ namespace Lykke.Service.History.Tests
             _container = initialization.Container;
         }
 
-        [Fact]
+        //[Fact]
         public async Task SaveExecution_Test()
         {
             var walletId = Guid.NewGuid();
