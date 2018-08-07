@@ -1,30 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 
-namespace Lykke.Service.History.Workflow.Handlers
+namespace Lykke.Service.History.Workflow.Projections
 {
-    public class TransferCommandHandler
+    public class CashTransferProjection
     {
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _logger;
 
-        public TransferCommandHandler(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
+        public CashTransferProjection(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
         {
             _historyRecordsRepository = historyRecordsRepository;
             _logger = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(SaveTransferCommand command)
+        public async Task<CommandHandlingResult> Handle(CashTransferProcessedEvent command)
         {
             var transfers = Mapper.Map<IEnumerable<Transfer>>(command);
 

@@ -11,6 +11,12 @@ namespace Lykke.Service.History.Tests.Init
     {
         private readonly List<Order> _orders = new List<Order>();
 
+        public async Task UpsertBulkAsync(IEnumerable<Order> records)
+        {
+            foreach (var order in records)
+                await InsertOrUpdateAsync(order);
+        }
+
         public Task<bool> InsertOrUpdateAsync(Order order)
         {
             var current = _orders.FirstOrDefault(x => x.Id == order.Id);

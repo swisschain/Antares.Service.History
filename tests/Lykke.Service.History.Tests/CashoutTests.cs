@@ -2,12 +2,10 @@
 using System.Threading.Tasks;
 using Autofac;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Tests.Init;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Xunit;
 
 namespace Lykke.Service.History.Tests
@@ -38,7 +36,7 @@ namespace Lykke.Service.History.Tests
             Assert.Equal(-Math.Abs(command.Volume), (item as Cashout).Volume);
         }
 
-        private SaveCashoutCommand CreateCashoutRecord()
+        private CashOutProcessedEvent CreateCashoutRecord()
         {
             var cqrs = _container.Resolve<ICqrsEngine>();
 
@@ -46,7 +44,7 @@ namespace Lykke.Service.History.Tests
             var clientId = Guid.NewGuid();
             var volume = 54.31M;
 
-            var command = new SaveCashoutCommand
+            var @event = new CashOutProcessedEvent
             {
                 Id = id,
                 WalletId = clientId,
@@ -55,9 +53,9 @@ namespace Lykke.Service.History.Tests
                 Timestamp = DateTime.UtcNow
             };
 
-            cqrs.SendCommand(command, BoundedContext.Name, BoundedContext.Name);
+            cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
 
-            return command;
+            return @event;
         }
     }
 }

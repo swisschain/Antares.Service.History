@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Contracts.Cqrs.Models;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.Tests.Init;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums;
 using Xunit;
-using OrderSide = Lykke.Service.History.Contracts.Cqrs.Models.Enums.OrderSide;
-using OrderStatus = Lykke.Service.History.Contracts.Cqrs.Models.Enums.OrderStatus;
-using OrderType = Lykke.Service.History.Contracts.Cqrs.Models.Enums.OrderType;
-using TradeRole = Lykke.Service.History.Contracts.Cqrs.Commands.Models.TradeRole;
 
 namespace Lykke.Service.History.Tests
 {
@@ -47,7 +42,7 @@ namespace Lykke.Service.History.Tests
                 OppositeAssetId = "USD",
                 OppositeVolume = -5002,
                 Price = 10001,
-                Role = TradeRole.Maker,
+                Role = PostProcessing.Contracts.Cqrs.Models.Enums.TradeRole.Maker,
                 Timestamp = date.AddMilliseconds(1)
             };
 
@@ -69,18 +64,28 @@ namespace Lykke.Service.History.Tests
                 Trades = new List<TradeModel> { tradeModel }
             };
 
-            var command = new SaveExecutionCommand
+            var seq = 10;
+
+            var cqrs = _container.Resolve<ICqrsEngine>();
+            cqrs.PublishEvent(new ExecutionProcessedEvent
             {
-                SequenceNumber = 100,
+                SequenceNumber = seq,
                 Orders = new List<OrderModel>
                 {
                     orderModel
                 }
-            };
+            }, PostProcessingBoundedContext.Name);
 
-            var cqrs = _container.Resolve<ICqrsEngine>();
+            orderModel.Status = OrderStatus.Matched;
 
-            cqrs.SendCommand(command, BoundedContext.Name, BoundedContext.Name);
+            cqrs.PublishEvent(new ExecutionProcessedEvent
+            {
+                SequenceNumber = seq + 1,
+                Orders = new List<OrderModel>
+                {
+                    orderModel
+                }
+            }, PostProcessingBoundedContext.Name);
 
             await Task.Delay(3000);
 
@@ -91,9 +96,9 @@ namespace Lykke.Service.History.Tests
             var order = await orderRepo.Get(orderModel.Id);
 
             Assert.NotNull(order);
-            Assert.Equal((int)order.Status, (int)orderModel.Status);
-            Assert.Equal(order.SequenceNumber, command.SequenceNumber);
-            Assert.Equal(order.Volume, orderModel.Volume);
+            Assert.Equal((int)orderModel.Status, (int)order.Status);
+            Assert.Equal(seq + 1, order.SequenceNumber);
+            Assert.Equal(orderModel.Volume, order.Volume);
 
             var item = await repo.Get(tradeModel.Id, tradeModel.WalletId);
 

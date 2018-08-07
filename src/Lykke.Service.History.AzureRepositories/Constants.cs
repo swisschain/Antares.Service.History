@@ -9,5 +9,7 @@ namespace Lykke.Service.History.PostgresRepositories
         public const string HistoryTableName = "history";
 
         public const string OrdersTableName = "orders";
+
+        public const string TempOrdersTableName = "temporders";
     }
 }

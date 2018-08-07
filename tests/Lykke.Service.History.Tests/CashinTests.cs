@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using AutoMapper;
-using Dapper;
-using Dommel;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
-using Lykke.Service.History.PostgresRepositories.Entities;
 using Lykke.Service.History.Tests.Init;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Xunit;
 
 namespace Lykke.Service.History.Tests
@@ -47,7 +40,7 @@ namespace Lykke.Service.History.Tests
             Assert.Equal(Math.Abs(command.Volume), cashin.Volume);
         }
 
-        private SaveCashinCommand CreateCashinRecord()
+        private CashInProcessedEvent CreateCashinRecord()
         {
             var cqrs = _container.Resolve<ICqrsEngine>();
 
@@ -55,7 +48,7 @@ namespace Lykke.Service.History.Tests
             var clientId = Guid.NewGuid();
             var volume = 54.31M;
 
-            var command = new SaveCashinCommand
+            var @event = new CashInProcessedEvent
             {
                 Id = id,
                 WalletId = clientId,
@@ -65,9 +58,9 @@ namespace Lykke.Service.History.Tests
                 FeeSize = 10
             };
 
-            cqrs.SendCommand(command, BoundedContext.Name, BoundedContext.Name);
+            cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
 
-            return command;
+            return @event;
         }
     }
 }

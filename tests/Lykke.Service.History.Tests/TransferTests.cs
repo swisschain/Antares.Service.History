@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using AutoMapper;
-using Dapper;
-using Dommel;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
-using Lykke.Service.History.PostgresRepositories.Entities;
 using Lykke.Service.History.Tests.Init;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Xunit;
 
 namespace Lykke.Service.History.Tests
@@ -55,7 +48,7 @@ namespace Lykke.Service.History.Tests
             Assert.Equal(command.FeeSize, transferTo.FeeSize);
         }
 
-        private SaveTransferCommand CreateTransferRecord()
+        private CashTransferProcessedEvent CreateTransferRecord()
         {
             var cqrs = _container.Resolve<ICqrsEngine>();
 
@@ -64,7 +57,7 @@ namespace Lykke.Service.History.Tests
             var walletTo = Guid.NewGuid();
             var volume = new Random().Next(1, 100);
 
-            var command = new SaveTransferCommand
+            var @event = new CashTransferProcessedEvent
             {
                 Id = id,
                 FromWalletId = walletFrom,
@@ -76,9 +69,9 @@ namespace Lykke.Service.History.Tests
                 FeeSourceWalletId = walletTo
             };
 
-            cqrs.SendCommand(command, BoundedContext.Name, BoundedContext.Name);
+            cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
 
-            return command;
+            return @event;
         }
     }
 }

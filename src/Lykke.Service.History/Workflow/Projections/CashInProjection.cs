@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 
-namespace Lykke.Service.History.Workflow.Handlers
+namespace Lykke.Service.History.Workflow.Projections
 {
-    public class CashinCommandHandler
+    public class CashInProjection
     {
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _logger;
 
-        public CashinCommandHandler(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
+        public CashInProjection(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
         {
             _historyRecordsRepository = historyRecordsRepository;
             _logger = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(SaveCashinCommand command)
+        public async Task<CommandHandlingResult> Handle(CashInProcessedEvent command)
         {
             var entity = Mapper.Map<Cashin>(command);
 

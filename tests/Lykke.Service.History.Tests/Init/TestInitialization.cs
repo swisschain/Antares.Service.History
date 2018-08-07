@@ -11,16 +11,14 @@ using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Service.History.AutoMapper;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.Modules;
 using Lykke.Service.History.PostgresRepositories.Mappings;
 using Lykke.Service.History.Settings;
-using Lykke.Service.History.Workflow.Handlers;
+using Lykke.Service.History.Workflow.Projections;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader.ReloadingManager;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -58,10 +56,10 @@ namespace Lykke.Service.History.Tests.Init
 
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>().SingleInstance();
 
-            builder.RegisterType<CashinCommandHandler>();
-            builder.RegisterType<CashoutCommandHandler>();
-            builder.RegisterType<TransferCommandHandler>();
-            builder.RegisterType<ExecutionCommandHandler>();
+            builder.RegisterType<CashInProjection>();
+            builder.RegisterType<CashOutProjection>();
+            builder.RegisterType<CashTransferProjection>();
+            builder.RegisterType<ExecutionProjection>();
 
             builder.Register(ctx =>
                 {
@@ -119,7 +117,7 @@ namespace Lykke.Service.History.Tests.Init
             IMessagingEngine messagingEngine,
             ILogFactory logFactory)
         {
-            const string defaultRoute = "commands";
+            const string defaultRoute = "self";
 
             return new CqrsEngine(
                 logFactory,
@@ -129,26 +127,29 @@ namespace Lykke.Service.History.Tests.Init
                 true,
                 Register.DefaultEndpointResolver(new InMemoryEndpointResolver()),
 
-                Register.BoundedContext(BoundedContext.Name)
-                    .ListeningCommands(typeof(SaveCashinCommand))
-                    .On(defaultRoute)
+                Register.BoundedContext(PostProcessingBoundedContext.Name)
+                    
+                     
+                    .PublishingEvents(typeof(CashInProcessedEvent))
+                    .With(defaultRoute)
                     .WithLoopback()
-                    .WithCommandsHandler<CashinCommandHandler>()
+                    .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveCashoutCommand))
-                    .On(defaultRoute)
+                    .PublishingEvents(typeof(CashOutProcessedEvent))
+                    .With(defaultRoute)
                     .WithLoopback()
-                    .WithCommandsHandler<CashoutCommandHandler>()
+                    .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveExecutionCommand))
-                    .On(defaultRoute)
+                    .PublishingEvents(typeof(CashTransferProcessedEvent))
+                    .With(defaultRoute)
                     .WithLoopback()
-                    .WithCommandsHandler<ExecutionCommandHandler>()
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveTransferCommand))
-                    .On(defaultRoute)
+                    .PublishingEvents(typeof(ExecutionProcessedEvent))
+                    .With(defaultRoute)
                     .WithLoopback()
-                    .WithCommandsHandler<TransferCommandHandler>());
+                    .WithProjection(typeof(ExecutionProjection), PostProcessingBoundedContext.Name)
+                    );
         }
     }
 }

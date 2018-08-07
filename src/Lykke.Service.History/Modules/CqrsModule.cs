@@ -10,10 +10,10 @@ using Lykke.Cqrs.Configuration;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
-using Lykke.Service.History.Contracts.Cqrs;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
 using Lykke.Service.History.Settings;
-using Lykke.Service.History.Workflow.Handlers;
+using Lykke.Service.History.Workflow.Projections;
+using Lykke.Service.PostProcessing.Contracts.Cqrs;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader;
 
 namespace Lykke.Service.History.Modules
@@ -37,10 +37,10 @@ namespace Lykke.Service.History.Modules
             };
             var rabbitMqEndpoint = rabbitMqSettings.Endpoint.ToString();
 
-            builder.RegisterType<CashinCommandHandler>();
-            builder.RegisterType<CashoutCommandHandler>();
-            builder.RegisterType<TransferCommandHandler>();
-            builder.RegisterType<ExecutionCommandHandler>();
+            builder.RegisterType<CashInProjection>();
+            builder.RegisterType<CashOutProjection>();
+            builder.RegisterType<CashTransferProjection>();
+            builder.RegisterType<ExecutionProjection>();
 
             builder.Register(ctx =>
             {
@@ -71,7 +71,8 @@ namespace Lykke.Service.History.Modules
             IMessagingEngine messagingEngine,
             ILogFactory logFactory)
         {
-            const string defaultRoute = "commands";
+            const string boundedContext = "history";
+            const string defaultRoute = "self";
 
             return new CqrsEngine(
                 logFactory,
@@ -84,22 +85,26 @@ namespace Lykke.Service.History.Modules
                     Messaging.Serialization.SerializationFormat.ProtoBuf,
                     environment: "lykke")),
 
-                Register.BoundedContext(BoundedContext.Name)
-                    .ListeningCommands(typeof(SaveCashinCommand))
+                Register.BoundedContext(boundedContext)
+                    .ListeningEvents(typeof(CashInProcessedEvent))
+                    .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithCommandsHandler<CashinCommandHandler>()
+                    .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveCashoutCommand))
+                    .ListeningEvents(typeof(CashOutProcessedEvent))
+                    .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithCommandsHandler<CashoutCommandHandler>()
+                    .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveTransferCommand))
+                    .ListeningEvents(typeof(CashTransferProcessedEvent))
+                    .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithCommandsHandler<TransferCommandHandler>()
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
 
-                    .ListeningCommands(typeof(SaveExecutionCommand))
+                    .ListeningEvents(typeof(ExecutionProcessedEvent))
+                    .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithCommandsHandler<ExecutionCommandHandler>());
+                    .WithProjection(typeof(ExecutionProjection), PostProcessingBoundedContext.Name));
         }
     }
 }

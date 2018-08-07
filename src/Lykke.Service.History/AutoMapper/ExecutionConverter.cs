@@ -1,16 +1,13 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
-using Lykke.Service.History.Contracts.Cqrs.Commands;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.Enums;
-using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 
 namespace Lykke.Service.History.AutoMapper
 {
-    public class ExecutionConverter : ITypeConverter<SaveExecutionCommand, IEnumerable<Order>>
+    public class ExecutionConverter : ITypeConverter<ExecutionProcessedEvent, IEnumerable<Order>>
     {
-        public IEnumerable<Order> Convert(SaveExecutionCommand source, IEnumerable<Order> destination, ResolutionContext context)
+        public IEnumerable<Order> Convert(ExecutionProcessedEvent source, IEnumerable<Order> destination, ResolutionContext context)
         {
             foreach (var item in source.Orders)
             {
