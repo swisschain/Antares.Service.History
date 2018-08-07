@@ -5,15 +5,19 @@ using RabbitMQ.Client;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
-    public sealed class MessageAcceptor
+    public class CustomQueueItem<T>
     {
-        private readonly IModel _model;
         private readonly ulong _deliveryTag;
 
-        public MessageAcceptor(IModel model, ulong deliveryTag)
+        private readonly IModel _model;
+
+        public T Value { get; }
+
+        public CustomQueueItem(T value, ulong deliveryTag, IModel model)
         {
-            _model = model;
+            Value = value;
             _deliveryTag = deliveryTag;
+            _model = model;
         }
 
         public void Accept()
@@ -21,9 +25,9 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             _model.BasicAck(_deliveryTag, false);
         }
 
-        public void Reject()
+        public void Reject(bool requeue = true)
         {
-            _model.BasicReject(_deliveryTag, false);
+            _model.BasicReject(_deliveryTag, requeue);
         }
     }
 }

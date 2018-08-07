@@ -46,13 +46,17 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
         {
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {
+                var baseHistoryRecords = records.ToArray();
+
                 try
                 {
-                    BulkMapping.SaveAll(connection, records.Select(HistoryTypeMapper.Map));
+                    BulkMapping.SaveAll(connection, baseHistoryRecords.Select(HistoryTypeMapper.Map));
                 }
                 catch (PostgresException e) when (e.SqlState == DuplicateSqlState)
                 {
-                    return false;
+                    // fallback, try to insert one by one
+                    foreach (var trade in baseHistoryRecords)
+                        await TryInsertAsync(trade);
                 }
             }
 
