@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
-using Lykke.RabbitMqBroker;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
-    public class ExecutionBatchHandlingStrategy : IErrorHandlingStrategy
+    public class ExecutionBatchHandlingStrategy 
     {
         private readonly int _batchSize;
         private readonly ILog _log;
@@ -24,7 +23,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             _log = logFactory.CreateLog(this);
         }
 
-        public void Execute(Action handler, IMessageAcceptor ma, CancellationToken cancellationToken)
+        public void Execute(Action handler, MessageAcceptor ma, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _currentCount);
 

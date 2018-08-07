@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
+using AutoMapper;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
+using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.Tests.Init;
+using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
+using MoreLinq;
 using Xunit;
+using OrderSide = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderSide;
+using OrderStatus = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderStatus;
+using OrderType = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderType;
 
 namespace Lykke.Service.History.Tests
 {
@@ -19,6 +27,28 @@ namespace Lykke.Service.History.Tests
         public SelectDataTests(TestInitialization initialization)
         {
             _container = initialization.Container;
+        }
+
+        //[Fact]
+        public async Task InsertOrders_Test()
+        {
+            var repo = _container.Resolve<IOrdersRepository>();
+            var repotrades = _container.Resolve<IHistoryRecordsRepository>();
+
+            var orders = Enumerable.Range(1, 1000).Select(x => GetOrder());
+
+            var sw = Stopwatch.StartNew();
+
+            foreach (var bulk in orders.Batch(100))
+            {
+                await repo.UpsertBulkAsync(bulk);
+
+                await repotrades.TryInsertBulkAsync(bulk.SelectMany(x => x.Trades));
+
+                Console.WriteLine(sw.ElapsedMilliseconds);
+            }
+
+            sw.Stop();
         }
 
         [Fact]
@@ -119,6 +149,52 @@ namespace Lykke.Service.History.Tests
             await repo.TryInsertBulkAsync(list);
 
             return (walletId, list);
+        }
+
+        private Order GetOrder()
+        {
+            var walletId = Guid.NewGuid();
+            var orderId = Guid.NewGuid();
+            var tradeId = Guid.NewGuid();
+            var date = DateTime.UtcNow;
+
+            var random = new Random();
+
+            Trade GetTrade()
+            {
+                return new Trade
+                {
+                    Id = Guid.NewGuid(),
+                    WalletId = walletId,
+                    AssetPairId = "BTCUSD",
+                    AssetId = "BTC",
+                    Volume = 5,
+                    OppositeAssetId = "USD",
+                    OppositeVolume = -5002,
+                    Price = 10001,
+                    Timestamp = date.AddMilliseconds(1)
+                };
+            }
+
+            var orderModel = new Order
+            {
+                Id = orderId,
+                AssetPairId = "BTCUSD",
+                CreateDt = date,
+                StatusDt = date,
+                MatchingId = Guid.NewGuid(),
+                Price = 10001.123M,
+                Volume = 10,
+                RemainingVolume = 10,
+                Side = Core.Domain.Enums.OrderSide.Buy,
+                Status = Core.Domain.Enums.OrderStatus.Placed,
+                Straight = true,
+                Type = Core.Domain.Enums.OrderType.Limit,
+                WalletId = walletId,
+                Trades = Enumerable.Range(1, random.Next(1, 20)).Select(x => GetTrade()).ToList()
+            };
+
+            return orderModel;
         }
     }
 }
