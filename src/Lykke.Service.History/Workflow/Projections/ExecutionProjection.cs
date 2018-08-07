@@ -21,30 +21,28 @@ namespace Lykke.Service.History.Workflow.Projections
 
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly IOrdersRepository _ordersRepository;
-        private readonly ILog _logger;
 
-        public ExecutionProjection(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory, IOrdersRepository ordersRepository)
+        public ExecutionProjection(IHistoryRecordsRepository historyRecordsRepository, IOrdersRepository ordersRepository)
         {
             _historyRecordsRepository = historyRecordsRepository;
             _ordersRepository = ordersRepository;
-            _logger = logFactory.CreateLog(this);
         }
 
         public async Task<CommandHandlingResult> Handle(ExecutionProcessedEvent @event)
         {
-            var sw = Stopwatch.StartNew();
-            var builder = new StringBuilder();
-
             var orders = Mapper.Map<IEnumerable<Order>>(@event).ToList();
 
-            builder.AppendLine($"Started {DateTime.UtcNow}, count: {orders.Count}");
+            if (!orders.Any())
+                return CommandHandlingResult.Ok();
 
-            sw.Restart();
-
-            await _ordersRepository.UpsertBulkAsync(orders);
-
-            builder.AppendLine($"Orders: {sw.ElapsedMilliseconds}");
-            sw.Restart();
+            if (orders.Count > 1)
+            {
+                await _ordersRepository.UpsertBulkAsync(orders);
+            }
+            else
+            {
+                await _ordersRepository.InsertOrUpdateAsync(orders[0]);
+            }
 
             var trades = orders.SelectMany(x => x.Trades);
 
@@ -53,11 +51,6 @@ namespace Lykke.Service.History.Workflow.Projections
             {
                 await _historyRecordsRepository.TryInsertBulkAsync(tradesBatch);
             }
-
-            builder.AppendLine($"Trades: {sw.ElapsedMilliseconds}");
-            sw.Restart();
-
-            _logger.Info(builder.ToString());
 
             return CommandHandlingResult.Ok();
         }
