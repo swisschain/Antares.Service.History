@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
@@ -26,6 +27,9 @@ namespace Lykke.Service.History.Controllers
             [FromQuery] int offset = 0,
             [FromQuery] int limit = 100)
         {
+            if (type.Length == 0)
+                type = Enum.GetValues(typeof(HistoryType)).Cast<HistoryType>().ToArray();
+
             var data = await _historyRecordsRepository.GetByWallet(walletId, type, offset, limit, assetPairId, assetId);
 
             return data;

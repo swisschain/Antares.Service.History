@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
+using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.PostgresRepositories.Entities;
@@ -65,6 +66,19 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             using (var context = _connectionFactory.CreateDataContext())
             {
                 return Mapper.Map<Order>(await context.Orders.FirstOrDefaultAsync(x => x.Id == id));
+            }
+        }
+
+        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderStatus[] statuses, int offset, int limit)
+        {
+            using (var context = _connectionFactory.CreateDataContext())
+            {
+                var query = context.Orders
+                    .Where(x => x.WalletId == walletId && statuses.Contains(x.Status))
+                    .Skip(offset)
+                    .Take(limit);
+
+                return (await query.ToListAsync()).Select(Mapper.Map<Order>);
             }
         }
 

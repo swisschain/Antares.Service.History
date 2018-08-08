@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
 
 namespace Lykke.Service.History.Tests.Init
@@ -52,6 +53,12 @@ namespace Lykke.Service.History.Tests.Init
         public Task<Order> Get(Guid id)
         {
             return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id));
+        }
+
+        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderStatus[] statuses, int offset, int limit)
+        {
+            return Task.FromResult(_orders.Where(x => x.WalletId == walletId && statuses.Contains(x.Status))
+                .Skip(offset).Take(limit));
         }
     }
 }

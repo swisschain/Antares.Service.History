@@ -34,7 +34,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         private readonly IHealthNotifier _healthNotifier;
 
         private ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>> _queue;
-        private Task _saveTask;
+        private Task _dbWriterTask;
         private Task _queueReaderTask;
         private CancellationTokenSource _cancellationTokenSource;
         
@@ -56,7 +56,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _queue = new ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>>();
-            _saveTask = StartSaving();
+            _dbWriterTask = StartDbWriter();
             _queueReaderTask = StartQueueReader().ContinueWith(x =>
             {
                 if (x.IsFaulted)
@@ -118,21 +118,21 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 while (!_cancellationTokenSource.IsCancellationRequested)
                     await Task.Delay(100);
 
-                await _saveTask;
+                await _dbWriterTask;
 
                 channel.BasicCancel(tag);
                 connection.Close();
             }
         }
 
-        private async Task StartSaving()
+        private async Task StartDbWriter()
         {
             while (!_cancellationTokenSource.IsCancellationRequested || _queue.Count > 0)
             {
+                var isFullBatch = false;
                 try
                 {
                     var list = new List<CustomQueueItem<IEnumerable<Order>>>();
-
                     try
                     {
                         for (var i = 0; i < ExecutionsBulkSize; i++)
@@ -145,6 +145,8 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 
                         if (list.Count > 0)
                         {
+                            isFullBatch = list.Count == ExecutionsBulkSize;
+
                             var orders = list.SelectMany(x => x.Value).ToList();
 
                             await _ordersRepository.UpsertBulkAsync(orders);
@@ -178,7 +180,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 }
                 finally
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(isFullBatch ? 1 : 1000);
                 }
             }
         }
