@@ -17,7 +17,7 @@ namespace Lykke.Service.History.Tests.Init
             return Task.FromResult(_data.FirstOrDefault(x => x.Id == id && x.WalletId == walletId));
         }
 
-        public Task<bool> TryInsertBulkAsync(IEnumerable<BaseHistoryRecord> records)
+        public Task<bool> InsertBulkAsync(IEnumerable<BaseHistoryRecord> records)
         {
             if (_data.Any(x => records.Any(o => o.Id == x.Id)))
                 Task.FromResult(false);

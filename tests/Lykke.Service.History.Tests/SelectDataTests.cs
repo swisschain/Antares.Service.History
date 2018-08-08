@@ -43,7 +43,7 @@ namespace Lykke.Service.History.Tests
             {
                 await repo.UpsertBulkAsync(bulk);
 
-                await repotrades.TryInsertBulkAsync(bulk.SelectMany(x => x.Trades));
+                await repotrades.InsertBulkAsync(bulk.SelectMany(x => x.Trades));
 
                 Console.WriteLine(sw.ElapsedMilliseconds);
             }
@@ -146,7 +146,7 @@ namespace Lykke.Service.History.Tests
 
             var repo = _container.Resolve<IHistoryRecordsRepository>();
 
-            await repo.TryInsertBulkAsync(list);
+            await repo.InsertBulkAsync(list);
 
             return (walletId, list);
         }

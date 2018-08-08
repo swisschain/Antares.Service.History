@@ -42,7 +42,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             }
         }
 
-        public async Task<bool> TryInsertBulkAsync(IEnumerable<BaseHistoryRecord> records)
+        public async Task<bool> InsertBulkAsync(IEnumerable<BaseHistoryRecord> records)
         {
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {

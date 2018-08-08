@@ -59,7 +59,6 @@ namespace Lykke.Service.History.Tests.Init
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
-            builder.RegisterType<ExecutionProjection>();
 
             builder.Register(ctx =>
                 {
@@ -143,13 +142,7 @@ namespace Lykke.Service.History.Tests.Init
                     .PublishingEvents(typeof(CashTransferProcessedEvent))
                     .With(defaultRoute)
                     .WithLoopback()
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
-
-                    .PublishingEvents(typeof(ExecutionProcessedEvent))
-                    .With(defaultRoute)
-                    .WithLoopback()
-                    .WithProjection(typeof(ExecutionProjection), PostProcessingBoundedContext.Name)
-                    );
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name));
         }
     }
 }

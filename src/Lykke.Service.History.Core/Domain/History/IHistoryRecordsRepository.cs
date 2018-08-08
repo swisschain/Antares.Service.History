@@ -9,7 +9,7 @@ namespace Lykke.Service.History.Core.Domain.History
     {
         Task<BaseHistoryRecord> Get(Guid id, Guid walletId);
 
-        Task<bool> TryInsertBulkAsync(IEnumerable<BaseHistoryRecord> records);
+        Task<bool> InsertBulkAsync(IEnumerable<BaseHistoryRecord> records);
 
         Task<bool> TryInsertAsync(BaseHistoryRecord entity);
 

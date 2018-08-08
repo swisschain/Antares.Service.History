@@ -18,9 +18,7 @@ namespace Lykke.Service.History
 
         public Task StartAsync()
         {
-#pragma warning disable 4014
             _executionQueueReader.Start();
-#pragma warning restore 4014
 
             return Task.CompletedTask;
         }

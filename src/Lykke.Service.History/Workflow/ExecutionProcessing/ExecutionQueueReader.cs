@@ -31,29 +31,51 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly IOrdersRepository _ordersRepository;
         private readonly ILog _log;
+        private readonly IHealthNotifier _healthNotifier;
 
         private ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>> _queue;
         private Task _saveTask;
+        private Task _queueReaderTask;
         private CancellationTokenSource _cancellationTokenSource;
         
+
         public ExecutionQueueReader(
             ILogFactory logFactory,
             string connectionString,
             IHistoryRecordsRepository historyRecordsRepository,
-            IOrdersRepository ordersRepository)
+            IOrdersRepository ordersRepository, IHealthNotifier healthNotifier)
         {
             _connectionString = connectionString;
             _historyRecordsRepository = historyRecordsRepository;
             _ordersRepository = ordersRepository;
+            _healthNotifier = healthNotifier;
             _log = logFactory.CreateLog(this);
         }
 
-        public async Task Start()
+        public void Start()
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _queue = new ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>>();
             _saveTask = StartSaving();
+            _queueReaderTask = StartQueueReader().ContinueWith(x =>
+            {
+                if (x.IsFaulted)
+                {
+                    _healthNotifier.Notify("Queue reader unexpectedly stopped");
+                    _log.Error(x.Exception);
+                }
+            });
+        }
 
+        public void Stop()
+        {
+            _cancellationTokenSource.Cancel();
+
+            Task.WaitAny(_queueReaderTask, Task.Delay(10000));
+        }
+
+        private async Task StartQueueReader()
+        {
             var exchangeName = $"lykke.{PostProcessingBoundedContext.Name}.events.exchange";
             var queueName = $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.custom-reader";
 
@@ -76,23 +98,23 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 var deserializer = new ProtobufMessageDeserializer<ExecutionProcessedEvent>();
 
                 consumer.Received += (o, basicDeliverEventArgs) =>
-                   {
-                       try
-                       {
-                           var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
+                {
+                    try
+                    {
+                        var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
 
-                           _queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(Mapper.Map<IEnumerable<Order>>(message), basicDeliverEventArgs.DeliveryTag, channel));
-                       }
-                       catch (Exception e)
-                       {
-                           _log.Error(e);
+                        _queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(Mapper.Map<IEnumerable<Order>>(message), basicDeliverEventArgs.DeliveryTag, channel));
+                    }
+                    catch (Exception e)
+                    {
+                        _log.Error(e);
 
-                           channel.BasicReject(basicDeliverEventArgs.DeliveryTag, false);
-                       }
-                   };
+                        channel.BasicReject(basicDeliverEventArgs.DeliveryTag, false);
+                    }
+                };
 
                 var tag = channel.BasicConsume(queueName, false, consumer);
-
+                
                 while (!_cancellationTokenSource.IsCancellationRequested)
                     await Task.Delay(100);
 
@@ -103,57 +125,61 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             }
         }
 
-        public void Stop()
-        {
-            _cancellationTokenSource.Cancel();
-        }
-
         private async Task StartSaving()
         {
             while (!_cancellationTokenSource.IsCancellationRequested || _queue.Count > 0)
             {
-                var list = new List<CustomQueueItem<IEnumerable<Order>>>();
-
                 try
                 {
-                    for (var i = 0; i < ExecutionsBulkSize; i++)
+                    var list = new List<CustomQueueItem<IEnumerable<Order>>>();
+
+                    try
                     {
-                        if (_queue.TryDequeue(out var customQueueItem))
-                            list.Add(customQueueItem);
-                        else
-                            break;
-                    }
-
-                    if (list.Count > 0)
-                    {
-                        var orders = list.SelectMany(x => x.Value).ToList();
-
-                        await _ordersRepository.UpsertBulkAsync(orders);
-
-                        var trades = orders.SelectMany(x => x.Trades);
-
-                        var batched = trades.Batch(TradesBulkSize).ToList();
-
-                        foreach (var tradesBatch in batched)
+                        for (var i = 0; i < ExecutionsBulkSize; i++)
                         {
-                            await _historyRecordsRepository.TryInsertBulkAsync(tradesBatch);
+                            if (_queue.TryDequeue(out var customQueueItem))
+                                list.Add(customQueueItem);
+                            else
+                                break;
+                        }
+
+                        if (list.Count > 0)
+                        {
+                            var orders = list.SelectMany(x => x.Value).ToList();
+
+                            await _ordersRepository.UpsertBulkAsync(orders);
+
+                            var trades = orders.SelectMany(x => x.Trades);
+
+                            var batched = trades.Batch(TradesBulkSize).ToList();
+
+                            foreach (var tradesBatch in batched)
+                            {
+                                await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
+                            }
                         }
                     }
+                    catch (Exception e)
+                    {
+                        _log.Error(e);
+
+                        foreach (var item in list)
+                            item.Reject();
+                    }
+                    finally
+                    {
+                        foreach (var item in list)
+                            item.Accept();
+                    }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     _log.Error(e);
-
-                    foreach (var item in list)
-                        item.Reject();
                 }
                 finally
                 {
-                    foreach (var item in list)
-                        item.Accept();
+                    await Task.Delay(10);
                 }
-
-                await Task.Delay(10);
             }
         }
 
