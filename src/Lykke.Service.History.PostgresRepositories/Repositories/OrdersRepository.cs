@@ -75,12 +75,12 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             }
         }
 
-        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderStatus[] statuses, int offset, int limit)
+        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset, int limit)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
                 var query = context.Orders
-                    .Where(x => x.WalletId == walletId && statuses.Contains(x.Status))
+                    .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
                     .Skip(offset)
                     .Take(limit);
 

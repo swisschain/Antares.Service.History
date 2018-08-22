@@ -30,13 +30,17 @@ namespace Lykke.Service.History.Controllers
         public async Task<IEnumerable<Order>> GetOrders(
             [FromQuery]Guid walletId,
             [FromQuery(Name = "status")]OrderStatus[] status,
+            [FromQuery(Name = "type")]OrderType[] type,
             int offset = 0,
             int limit = 100)
         {
             if (status.Length == 0)
                 status = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToArray();
 
-            return await _ordersRepository.GetOrders(walletId, status, offset, limit);
+            if (type.Length == 0)
+                type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
+
+            return await _ordersRepository.GetOrders(walletId, type, status, offset, limit);
         }
     }
 }
