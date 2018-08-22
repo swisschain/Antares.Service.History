@@ -51,7 +51,13 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
                     await connection.QueryAsync(string.Format(CreateTempTableQuery, Constants.TempOrdersTableName,
                         Constants.OrdersTableName));
 
-                    BulkMapping.SaveAll(connection, records.Select(Mapper.Map<OrderEntity>));
+                    var mapped = records.Select(Mapper.Map<OrderEntity>);
+
+                    // if there are more than one order with the same id, we need to send only latest
+                    // otherwise PostgreSQL will throw exception 21000: command cannot affect row a second time
+                    var uniqueOrders = mapped.GroupBy(x => x.Id).Select(x => x.OrderByDescending(o => o.SequenceNumber).First());
+
+                    BulkMapping.SaveAll(connection, uniqueOrders);
 
                     await connection.QueryAsync(string.Format(BulkUpsertQuery, Constants.TempOrdersTableName,
                         Constants.OrdersTableName));

@@ -12,7 +12,6 @@ using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
-using Lykke.Service.History.PostgresRepositories;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using MoreLinq;
@@ -37,7 +36,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         private Task _dbWriterTask;
         private Task _queueReaderTask;
         private CancellationTokenSource _cancellationTokenSource;
-        
+
 
         public ExecutionQueueReader(
             ILogFactory logFactory,
@@ -114,7 +113,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 };
 
                 var tag = channel.BasicConsume(queueName, false, consumer);
-                
+
                 while (!_cancellationTokenSource.IsCancellationRequested)
                     await Task.Delay(100);
 
@@ -132,6 +131,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 var isFullBatch = false;
                 try
                 {
+                    var exceptionThrowed = false;
                     var list = new List<CustomQueueItem<IEnumerable<Order>>>();
                     try
                     {
@@ -163,6 +163,8 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     }
                     catch (Exception e)
                     {
+                        exceptionThrowed = true;
+
                         _log.Error(e);
 
                         foreach (var item in list)
@@ -170,8 +172,9 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     }
                     finally
                     {
-                        foreach (var item in list)
-                            item.Accept();
+                        if (!exceptionThrowed)
+                            foreach (var item in list)
+                                item.Accept();
                     }
                 }
                 catch (Exception e)

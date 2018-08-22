@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.Core"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Repositories", "2. Repositories", "{BF745453-B940-470E-81BC-43FB67703D4E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.PostgresRepositories", "src\Lykke.Service.History.AzureRepositories\Lykke.Service.History.PostgresRepositories.csproj", "{4BE49E02-AAAD-460B-8D00-57F412A3D181}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.PostgresRepositories", "src\Lykke.Service.History.PostgresRepositories\Lykke.Service.History.PostgresRepositories.csproj", "{4BE49E02-AAAD-460B-8D00-57F412A3D181}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.History.Services", "src\Lykke.Service.History.Services\Lykke.Service.History.Services.csproj", "{2D5F52EC-2A27-4045-81ED-72355E2A6325}"
 EndProject

@@ -1,54 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Autofac;
-using AutoMapper;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.Tests.Init;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
 using MoreLinq;
 using Xunit;
-using OrderSide = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderSide;
-using OrderStatus = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderStatus;
-using OrderType = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.Enums.OrderType;
 
 namespace Lykke.Service.History.Tests
 {
     [Collection("history-tests")]
-    public class SelectDataTests
+    public class RepoTests
     {
         private readonly IContainer _container;
 
-        public SelectDataTests(TestInitialization initialization)
+        public RepoTests(TestInitialization initialization)
         {
             _container = initialization.Container;
         }
 
-        //[Fact]
-        public async Task InsertOrders_Test()
+        [Fact]
+        public async Task InsertOrdersWithSameId_Test()
         {
             var repo = _container.Resolve<IOrdersRepository>();
             var repotrades = _container.Resolve<IHistoryRecordsRepository>();
 
-            var orders = Enumerable.Range(1, 1000).Select(x => GetOrder());
+            var orderId = Guid.NewGuid();
+            var orders = Enumerable.Range(1, 10).Select(x => GetOrder()).ToList();
 
-            var sw = Stopwatch.StartNew();
-
-            foreach (var bulk in orders.Batch(100))
+            orders.ForEach((o, idx) =>
             {
-                await repo.UpsertBulkAsync(bulk);
+                o.SequenceNumber = idx;
+                o.Id = orderId;
+            });
 
-                await repotrades.InsertBulkAsync(bulk.SelectMany(x => x.Trades));
+            await repo.UpsertBulkAsync(orders);
 
-                Console.WriteLine(sw.ElapsedMilliseconds);
-            }
+            await repotrades.InsertBulkAsync(orders.SelectMany(x => x.Trades));
 
-            sw.Stop();
+            var newestOrder = orders.OrderByDescending(x => x.SequenceNumber).First();
+            var orderFromRepo = await repo.Get(orderId);
+
+            Assert.Equal(newestOrder.SequenceNumber, orderFromRepo.SequenceNumber);
+            Assert.Equal(newestOrder.Status, orderFromRepo.Status);
+            Assert.Equal(newestOrder.Type, orderFromRepo.Type);
         }
 
         [Fact]
@@ -155,7 +153,6 @@ namespace Lykke.Service.History.Tests
         {
             var walletId = Guid.NewGuid();
             var orderId = Guid.NewGuid();
-            var tradeId = Guid.NewGuid();
             var date = DateTime.UtcNow;
 
             var random = new Random();
@@ -183,13 +180,13 @@ namespace Lykke.Service.History.Tests
                 CreateDt = date,
                 StatusDt = date,
                 MatchingId = Guid.NewGuid(),
-                Price = 10001.123M,
-                Volume = 10,
+                Price = random.Next() * 100,
+                Volume = random.Next() * 10,
                 RemainingVolume = 10,
                 Side = Core.Domain.Enums.OrderSide.Buy,
-                Status = Core.Domain.Enums.OrderStatus.Placed,
+                Status = (Core.Domain.Enums.OrderStatus)random.Next(0, 8),
                 Straight = true,
-                Type = Core.Domain.Enums.OrderType.Limit,
+                Type = (Core.Domain.Enums.OrderType)random.Next(0, 4),
                 WalletId = walletId,
                 Trades = Enumerable.Range(1, random.Next(1, 20)).Select(x => GetTrade()).ToList()
             };

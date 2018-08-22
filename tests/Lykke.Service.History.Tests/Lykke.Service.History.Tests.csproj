@@ -13,7 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\client\Lykke.Service.History.Contracts\Lykke.Service.History.Contracts.csproj" />
-    <ProjectReference Include="..\..\src\Lykke.Service.History.AzureRepositories\Lykke.Service.History.PostgresRepositories.csproj" />
+    <ProjectReference Include="..\..\src\Lykke.Service.History.PostgresRepositories\Lykke.Service.History.PostgresRepositories.csproj" />
     <ProjectReference Include="..\..\src\Lykke.Service.History.Core\Lykke.Service.History.Core.csproj" />
     <ProjectReference Include="..\..\src\Lykke.Service.History\Lykke.Service.History.csproj" />
   </ItemGroup>
