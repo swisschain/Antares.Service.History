@@ -28,7 +28,7 @@ namespace Lykke.Service.History.Workflow.Projections
             {
                 if (!await _historyRecordsRepository.TryInsertAsync(transfer))
                 {
-                    _logger.Warning($"Skipped duplicated transfer record", context: new { id = command.Id });
+                    _logger.Warning($"Skipped duplicated transfer record", context: new { id = command.OperationId });
                 }
             }
 

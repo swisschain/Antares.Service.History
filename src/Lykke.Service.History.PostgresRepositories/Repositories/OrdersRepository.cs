@@ -36,7 +36,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
         {
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {
-                var result = await connection.ExecuteAsync(string.Format(InsertOrUpdateQuery, Constants.OrdersTableName), order);
+                var result = await connection.ExecuteAsync(_insertOrUpdateQuery, order);
 
                 return result > 0;
             }
@@ -48,8 +48,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             {
                 using (var tx = connection.BeginTransaction())
                 {
-                    await connection.QueryAsync(string.Format(CreateTempTableQuery, Constants.TempOrdersTableName,
-                        Constants.OrdersTableName));
+                    await connection.QueryAsync(_createTempTableQuery);
 
                     var mapped = records.Select(Mapper.Map<OrderEntity>);
 
@@ -59,8 +58,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
 
                     BulkMapping.SaveAll(connection, uniqueOrders);
 
-                    await connection.QueryAsync(string.Format(BulkUpsertQuery, Constants.TempOrdersTableName,
-                        Constants.OrdersTableName));
+                    await connection.QueryAsync(_bulkUpsertQuery);
 
                     await tx.CommitAsync();
                 }
@@ -88,14 +86,14 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             }
         }
 
-        private const string CreateTempTableQuery = @"
-create temp table if not exists {0} 
-(like {1})
+        private readonly string _createTempTableQuery = $@"
+create temp table if not exists {Constants.TempOrdersTableName} 
+(like {Constants.OrdersTableName})
 on commit drop";
 
-        private const string BulkUpsertQuery = @"
-insert into {1}
-select * from {0}
+        private readonly string _bulkUpsertQuery = $@"
+insert into {Constants.OrdersTableName}
+select * from {Constants.TempOrdersTableName}
 ON CONFLICT (id) DO UPDATE
     set type = excluded.type,
         status = excluded.status,
@@ -111,11 +109,10 @@ ON CONFLICT (id) DO UPDATE
         upper_limit_price = excluded.upper_limit_price,
         upper_price = excluded.upper_price,
         sequence_number = excluded.sequence_number
-            where {1}.sequence_number < excluded.sequence_number
-";
+            where {Constants.OrdersTableName}.sequence_number < excluded.sequence_number";
 
-        private const string InsertOrUpdateQuery = @"
-insert into {0}(id, matching_id, wallet_id, assetpair_id, type, side, status, volume, price, 
+        private readonly string _insertOrUpdateQuery = $@"
+insert into {Constants.OrdersTableName}(id, matching_id, wallet_id, assetpair_id, type, side, status, volume, price, 
                 create_dt, register_dt, status_dt, match_dt, remaining_volume, reject_reason, 
                 lower_limit_price, lower_price, upper_limit_price, upper_price, straight, sequence_number)
     values (@Id, @MatchingId, @WalletId, @AssetPairId, @Type, @Side, @Status, @Volume, @Price,
@@ -136,7 +133,6 @@ ON CONFLICT (id) DO UPDATE
         upper_limit_price = @UpperLimitPrice,
         upper_price = @UpperPrice,
         sequence_number = @SequenceNumber
-            where {0}.sequence_number < @SequenceNumber
-";
+            where {Constants.OrdersTableName}.sequence_number < @SequenceNumber";
     }
 }

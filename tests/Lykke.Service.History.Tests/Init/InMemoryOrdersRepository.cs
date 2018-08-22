@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.History.Tests.Init
 {
@@ -24,7 +26,7 @@ namespace Lykke.Service.History.Tests.Init
 
             if (current == null)
             {
-                _orders.Add(order);
+                _orders.Add(JsonConvert.DeserializeObject<Order>(order.ToJson()));
                 return Task.FromResult(true);
             }
             if (current.SequenceNumber >= order.SequenceNumber)

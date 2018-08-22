@@ -12,7 +12,7 @@ namespace Lykke.Service.History.AutoMapper
         {
             yield return new Transfer
             {
-                Id = source.Id,
+                Id = source.OperationId,
                 WalletId = source.FromWalletId,
                 Volume = -Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
@@ -22,7 +22,7 @@ namespace Lykke.Service.History.AutoMapper
 
             yield return new Transfer
             {
-                Id = source.Id,
+                Id = source.OperationId,
                 WalletId = source.ToWalletId,
                 Volume = Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,

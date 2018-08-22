@@ -67,7 +67,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
         {
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {
-                var result = await connection.ExecuteAsync(string.Format(InsertQuery, Constants.HistoryTableName), HistoryTypeMapper.Map(entity));
+                var result = await connection.ExecuteAsync(_insertQuery, HistoryTypeMapper.Map(entity));
 
                 return result > 0;
             }
@@ -77,7 +77,7 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
         {
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {
-                var result = await connection.ExecuteAsync(string.Format(UpdateBlockchainHashQuery, Constants.HistoryTableName), new
+                var result = await connection.ExecuteAsync(_updateBlockchainHashQuery, new
                 {
                     Id = id,
                     Hash = hash
@@ -102,14 +102,14 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             }
         }
 
-        private const string InsertQuery = @"
-insert into {0}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
+        private readonly string _insertQuery = $@"
+insert into {Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
     values (@Id, @WalletId, @AssetId, @AssetPairId, @Volume, @Type, @Timestamp, @Context::jsonb)
 ON CONFLICT (id, wallet_id) DO NOTHING;
 ";
 
-        private const string UpdateBlockchainHashQuery = @"
-update {0}
+        private readonly string _updateBlockchainHashQuery = $@"
+update {Constants.HistoryTableName}
 set context = jsonb_set(coalesce(context, '{{}}'), '{{BlockchainHash}}', to_jsonb(@Hash::text))
 where id = @Id
 ";

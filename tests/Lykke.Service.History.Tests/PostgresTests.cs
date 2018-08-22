@@ -13,11 +13,11 @@ using Xunit;
 namespace Lykke.Service.History.Tests
 {
     [Collection("history-tests")]
-    public class RepoTests
+    public class PostgresTests
     {
         private readonly IContainer _container;
 
-        public RepoTests(TestInitialization initialization)
+        public PostgresTests(TestInitialization initialization)
         {
             _container = initialization.Container;
         }
@@ -50,7 +50,45 @@ namespace Lykke.Service.History.Tests
         }
 
         [Fact]
-        public async Task SqlSelect_Test()
+        public async Task UpdateOrderOnlyWithBiggerSequence_Test()
+        {
+            var repo = _container.Resolve<IOrdersRepository>();
+
+            var orderId = Guid.NewGuid();
+            var order = GetOrder();
+
+            order.Id = orderId;
+
+            order.SequenceNumber = 1;
+            order.Status = OrderStatus.Cancelled;
+
+            await repo.InsertOrUpdateAsync(order);
+
+            var orderFromRepo = await repo.Get(orderId);
+
+            Assert.Equal(OrderStatus.Cancelled, orderFromRepo.Status);
+
+            order.SequenceNumber = 1;
+            order.Status = OrderStatus.Rejected;
+
+            await repo.InsertOrUpdateAsync(order);
+
+            orderFromRepo = await repo.Get(orderId);
+
+            Assert.Equal(OrderStatus.Cancelled, orderFromRepo.Status);
+
+            order.SequenceNumber = 2;
+            order.Status = OrderStatus.Matched;
+
+            await repo.InsertOrUpdateAsync(order);
+
+            orderFromRepo = await repo.Get(orderId);
+
+            Assert.Equal(OrderStatus.Matched, orderFromRepo.Status);
+        }
+
+        [Fact]
+        public async Task HistorySelect_Test()
         {
             var pairs = new[] { "BTCUSD", "EURUSD", "ETHUSD" };
             var assets = new[] { "BTC", "USD", "EUR", "ETH" };

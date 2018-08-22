@@ -29,8 +29,8 @@ namespace Lykke.Service.History.Tests
 
             var repo = _container.Resolve<IHistoryRecordsRepository>();
 
-            var itemFrom = await repo.Get(command.Id, command.FromWalletId);
-            var itemTo = await repo.Get(command.Id, command.ToWalletId);
+            var itemFrom = await repo.Get(command.OperationId, command.FromWalletId);
+            var itemTo = await repo.Get(command.OperationId, command.ToWalletId);
 
             Assert.NotNull(itemFrom);
             Assert.NotNull(itemTo);
@@ -59,7 +59,7 @@ namespace Lykke.Service.History.Tests
 
             var @event = new CashTransferProcessedEvent
             {
-                Id = id,
+                OperationId = id,
                 FromWalletId = walletFrom,
                 ToWalletId = walletTo,
                 Volume = volume,

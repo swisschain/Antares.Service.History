@@ -1,7 +1,4 @@
-﻿using Dapper.FluentMap.Dommel.Mapping;
-using Lykke.Service.History.Core.Domain;
-using Lykke.Service.History.Core.Domain.History;
-using Lykke.Service.History.PostgresRepositories.Entities;
+﻿using Lykke.Service.History.PostgresRepositories.Entities;
 using PostgreSQLCopyHelper;
 
 namespace Lykke.Service.History.PostgresRepositories.Mappings

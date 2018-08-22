@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using Autofac;
 using Common.Log;
+using Lykke.Bitcoin.Contracts;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
+using Lykke.Job.BlockchainCashinDetector.Contract;
+using Lykke.Job.BlockchainCashoutProcessor.Contract;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
@@ -48,6 +51,7 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
+            builder.RegisterType<TransactionHashProjection>();
 
             builder.Register(ctx =>
             {
@@ -81,16 +85,23 @@ namespace Lykke.Service.History.Modules
             const string boundedContext = "history";
             const string defaultRoute = "self";
 
+            var sagasMessagePackEndpointResolver = new RabbitMqConventionEndpointResolver(
+                "RabbitMq",
+                Messaging.Serialization.SerializationFormat.MessagePack,
+                environment: "lykke");
+
+            var sagasProtobufEndpointResolver = new RabbitMqConventionEndpointResolver(
+                "RabbitMq",
+                Messaging.Serialization.SerializationFormat.ProtoBuf,
+                environment: "lykke");
+
             return new CqrsEngine(
                 logFactory,
                 ctx.Resolve<IDependencyResolver>(),
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
-                Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
-                    "RabbitMq",
-                    Messaging.Serialization.SerializationFormat.ProtoBuf,
-                    environment: "lykke")),
+                Register.DefaultEndpointResolver(sagasProtobufEndpointResolver),
 
                 Register.BoundedContext(boundedContext)
                     .ListeningEvents(typeof(CashInProcessedEvent))
@@ -106,7 +117,25 @@ namespace Lykke.Service.History.Modules
                     .ListeningEvents(typeof(CashTransferProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name));
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
+
+                    .ListeningEvents(typeof(Bitcoin.Contracts.Events.CashoutCompletedEvent), typeof(Bitcoin.Contracts.Events.CashinCompletedEvent))
+                    .From(BitcoinBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(TransactionHashProjection), BitcoinBoundedContext.Name)
+
+                    .ListeningEvents(typeof(Job.BlockchainCashinDetector.Contract.Events.CashinCompletedEvent))
+                    .From(BlockchainCashinDetectorBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
+
+                    .ListeningEvents(typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent))
+                    .From(BlockchainCashoutProcessorBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name));
         }
     }
 }

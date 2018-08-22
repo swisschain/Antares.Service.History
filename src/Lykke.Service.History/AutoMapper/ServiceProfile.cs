@@ -14,10 +14,12 @@ namespace Lykke.Service.History.AutoMapper
         public ServiceProfile()
         {
             CreateMap<CashInProcessedEvent, Cashin>()
+                .ForMember(x => x.Id, o => o.MapFrom(s => s.OperationId))
                 .ForMember(x => x.State, o => o.UseValue(HistoryState.Finished))
                 .ForMember(x => x.Volume, o => o.MapFrom(s => Math.Abs(s.Volume)));
 
             CreateMap<CashOutProcessedEvent, Cashout>()
+                .ForMember(x => x.Id, o => o.MapFrom(s => s.OperationId))
                 .ForMember(x => x.State, o => o.UseValue(HistoryState.Finished))
                 .ForMember(x => x.Volume, o => o.MapFrom(s => -Math.Abs(s.Volume)));
 
