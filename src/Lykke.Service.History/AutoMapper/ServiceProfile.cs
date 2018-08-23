@@ -30,6 +30,13 @@ namespace Lykke.Service.History.AutoMapper
             CreateMap<OrderModel, Order>();
 
             CreateMap<ExecutionProcessedEvent, IEnumerable<Order>>().ConvertUsing<ExecutionConverter>();
+
+            CreateMap<OrderPlacedEvent, OrderEvent>()
+                .ForMember(x => x.Id, o => o.MapFrom(s => Guid.NewGuid()))
+                .ForMember(x => x.Timestamp, o => o.MapFrom(s => s.CreateDt));
+
+            CreateMap<OrderCancelledEvent, OrderEvent>()
+                .ForMember(x => x.Id, o => o.MapFrom(s => Guid.NewGuid()));
         }
     }
 }

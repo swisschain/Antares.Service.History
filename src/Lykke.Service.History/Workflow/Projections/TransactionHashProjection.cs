@@ -21,15 +21,13 @@ namespace Lykke.Service.History.Workflow.Projections
         /// <summary>
         /// Bitcoin cashin event
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <returns></returns>
-        public async Task<CommandHandlingResult> Handle(Bitcoin.Contracts.Events.CashinCompletedEvent command)
+        public async Task<CommandHandlingResult> Handle(Bitcoin.Contracts.Events.CashinCompletedEvent @event)
         {
-            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.OperationId, command.TxHash))
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TxHash))
             {
-                _logger.Warning($"Transaction hash was not set", context: new { id = command.OperationId, Hash = command.TxHash });
-
-                return CommandHandlingResult.Fail(TimeSpan.FromSeconds(10));
+                _logger.Warning($"Transaction hash was not set, bitcoin cashin", context: new { id = @event.OperationId, hash = @event.TxHash});
             }
 
             return CommandHandlingResult.Ok();
@@ -38,15 +36,13 @@ namespace Lykke.Service.History.Workflow.Projections
         /// <summary>
         /// Bitcoin cashout event
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <returns></returns>
-        public async Task<CommandHandlingResult> Handle(Bitcoin.Contracts.Events.CashoutCompletedEvent command)
+        public async Task<CommandHandlingResult> Handle(Bitcoin.Contracts.Events.CashoutCompletedEvent @event)
         {
-            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.OperationId, command.TxHash))
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TxHash))
             {
-                _logger.Warning($"Transaction hash was not set", context: new { id = command.OperationId, Hash = command.TxHash });
-
-                return CommandHandlingResult.Fail(TimeSpan.FromSeconds(10));
+                _logger.Warning($"Transaction hash was not set, bitcoin cashout", context: new { id = @event.OperationId, hash = @event.TxHash });
             }
             
             return CommandHandlingResult.Ok();
@@ -55,15 +51,13 @@ namespace Lykke.Service.History.Workflow.Projections
         /// <summary>
         /// BIL cashin event
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <returns></returns>
-        public async Task<CommandHandlingResult> Handle(Job.BlockchainCashinDetector.Contract.Events.CashinCompletedEvent command)
+        public async Task<CommandHandlingResult> Handle(Job.BlockchainCashinDetector.Contract.Events.CashinCompletedEvent @event)
         {
-            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.OperationId, command.TransactionHash))
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TransactionHash))
             {
-                _logger.Warning($"Transaction hash was not set", context: new { id = command.OperationId, Hash = command.TransactionHash });
-
-                return CommandHandlingResult.Fail(TimeSpan.FromSeconds(10));
+                _logger.Warning($"Transaction hash was not set, BIL cashin", context: new { id = @event.OperationId, hash = @event.TransactionHash });
             }
 
             return CommandHandlingResult.Ok();
@@ -72,15 +66,13 @@ namespace Lykke.Service.History.Workflow.Projections
         /// <summary>
         /// BIL cashout event
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <returns></returns>
-        public async Task<CommandHandlingResult> Handle(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent command)
+        public async Task<CommandHandlingResult> Handle(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent @event)
         {
-            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.OperationId, command.TransactionHash))
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TransactionHash))
             {
-                _logger.Warning($"Transaction hash was not set", context: new { id = command.OperationId, Hash = command.TransactionHash });
-
-                return CommandHandlingResult.Fail(TimeSpan.FromSeconds(10));
+                _logger.Warning($"Transaction hash was not set, BIL cashout", context: new { id = @event.OperationId, hash = @event.TransactionHash });
             }
 
             return CommandHandlingResult.Ok();

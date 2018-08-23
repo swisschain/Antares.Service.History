@@ -110,7 +110,7 @@ ON CONFLICT (id, wallet_id) DO NOTHING;
 
         private readonly string _updateBlockchainHashQuery = $@"
 update {Constants.HistoryTableName}
-set context = jsonb_set(coalesce(context, '{{}}'), '{{BlockchainHash}}', to_jsonb(@Hash::text))
+set context = jsonb_set(coalesce(context, '{{}}'), '{{{nameof(HistoryEntityContext.BlockchainHash)}}}', coalesce(to_jsonb(@Hash::text), jsonb 'null'))
 where id = @Id
 ";
     }

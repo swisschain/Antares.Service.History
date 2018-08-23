@@ -20,15 +20,15 @@ namespace Lykke.Service.History.Workflow.Projections
             _logger = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(CashTransferProcessedEvent command)
+        public async Task<CommandHandlingResult> Handle(CashTransferProcessedEvent @event)
         {
-            var transfers = Mapper.Map<IEnumerable<Transfer>>(command);
+            var transfers = Mapper.Map<IEnumerable<Transfer>>(@event);
 
             foreach (var transfer in transfers)
             {
                 if (!await _historyRecordsRepository.TryInsertAsync(transfer))
                 {
-                    _logger.Warning($"Skipped duplicated transfer record", context: new { id = command.OperationId });
+                    _logger.Warning($"Skipped duplicated transfer record", context: new { id = @event.OperationId });
                 }
             }
 

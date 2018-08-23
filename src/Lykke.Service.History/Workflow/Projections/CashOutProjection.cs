@@ -19,13 +19,13 @@ namespace Lykke.Service.History.Workflow.Projections
             _logger = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(CashOutProcessedEvent command)
+        public async Task<CommandHandlingResult> Handle(CashOutProcessedEvent @event)
         {
-            var entity = Mapper.Map<Cashout>(command);
+            var entity = Mapper.Map<Cashout>(@event);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
             {
-                _logger.Warning($"Skipped duplicated cashout record", context: new { id = command.OperationId });
+                _logger.Warning($"Skipped duplicated cashout record", context: new { id = @event.OperationId });
             }
 
             return CommandHandlingResult.Ok();

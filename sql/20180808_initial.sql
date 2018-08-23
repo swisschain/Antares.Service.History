@@ -10,7 +10,7 @@ CREATE TABLE history (
     assetpair_id text,
     volume numeric(28,10) NOT NULL,
     type integer NOT NULL,
-    create_dt timestamp(0) with time zone NOT NULL,
+    create_dt timestamp with time zone NOT NULL,
     context jsonb
 );
 
@@ -32,10 +32,10 @@ CREATE TABLE orders (
     assetpair_id text NOT NULL,
     volume numeric(28,10) NOT NULL,
     price numeric(28,10),
-    create_dt timestamp(0) with time zone NOT NULL,
-    register_dt timestamp(0) with time zone NOT NULL,
-    status_dt timestamp(0) with time zone NOT NULL,
-    match_dt timestamp(0) with time zone,
+    create_dt timestamp with time zone NOT NULL,
+    register_dt timestamp with time zone NOT NULL,
+    status_dt timestamp with time zone NOT NULL,
+    match_dt timestamp with time zone,
     remaining_volume numeric(28,10) NOT NULL,
     reject_reason text,
     lower_limit_price numeric(28,10),

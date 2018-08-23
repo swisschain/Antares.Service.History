@@ -16,6 +16,7 @@ using Lykke.Messaging.RabbitMq;
 using Lykke.Sdk;
 using Lykke.Service.History.Settings;
 using Lykke.Service.History.Workflow.ExecutionProcessing;
+using Lykke.Service.History.Workflow.Handlers;
 using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
@@ -52,6 +53,9 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
             builder.RegisterType<TransactionHashProjection>();
+            builder.RegisterType<OrderEventProjection>();
+
+            builder.RegisterType<EthereumCommandHandler>();
 
             builder.Register(ctx =>
             {
@@ -119,6 +123,11 @@ namespace Lykke.Service.History.Modules
                     .On(defaultRoute)
                     .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
 
+                    .ListeningEvents(typeof(OrderPlacedEvent), typeof(OrderCancelledEvent))
+                    .From(PostProcessingBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithProjection(typeof(OrderEventProjection), PostProcessingBoundedContext.Name)
+
                     .ListeningEvents(typeof(Bitcoin.Contracts.Events.CashoutCompletedEvent), typeof(Bitcoin.Contracts.Events.CashinCompletedEvent))
                     .From(BitcoinBoundedContext.Name)
                     .On(defaultRoute)
@@ -135,7 +144,13 @@ namespace Lykke.Service.History.Modules
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
-                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name));
+                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name),
+
+                Register.BoundedContext("tx-handler.ethereum.commands")
+                    .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand), typeof(ProcessHotWalletErc20EventCommand))
+                    .On("history")
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithCommandsHandler<EthereumCommandHandler>());
         }
     }
 }
