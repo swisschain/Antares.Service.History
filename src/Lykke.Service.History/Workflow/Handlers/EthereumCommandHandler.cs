@@ -34,11 +34,11 @@ namespace Lykke.Service.History.Workflow.Handlers
 
         public async Task<CommandHandlingResult> Handle(ProcessHotWalletErc20EventCommand command)
         {
-            var id = Guid.Parse(command.OperationId);
-
             // we need only cashout completed events here
             if (command.EventType != HotWalletEventType.CashoutCompleted)
                 return CommandHandlingResult.Ok();
+
+            var id = Guid.Parse(command.OperationId);
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
             {
@@ -50,11 +50,11 @@ namespace Lykke.Service.History.Workflow.Handlers
 
         public async Task<CommandHandlingResult> Handle(ProcessEthCoinEventCommand command)
         {
-            var id = Guid.Parse(command.OperationId);
-
             // we need only cashout completed events here
             if (command.CoinEventType != CoinEventType.CashoutCompleted)
                 return CommandHandlingResult.Ok();
+
+            var id = Guid.Parse(command.OperationId);
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
             {
