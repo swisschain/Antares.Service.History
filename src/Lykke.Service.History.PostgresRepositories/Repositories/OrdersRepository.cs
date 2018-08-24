@@ -127,6 +127,7 @@ ON CONFLICT (id) DO UPDATE
             {
                 var query = context.Orders
                     .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
+                    .OrderByDescending(x => x.CreateDt)
                     .Skip(offset)
                     .Take(limit);
 
