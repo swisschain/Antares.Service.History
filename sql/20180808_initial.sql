@@ -1,8 +1,3 @@
---
--- TOC entry 203 (class 1259 OID 32829)
--- Name: history; Type: TABLE; Schema: public; Owner: lykkex
---
-
 CREATE TABLE history (
     id uuid NOT NULL,
     wallet_id uuid NOT NULL,
@@ -13,14 +8,6 @@ CREATE TABLE history (
     create_dt timestamp with time zone NOT NULL,
     context jsonb
 );
-
-
-ALTER TABLE history OWNER TO lykkex;
-
---
--- TOC entry 204 (class 1259 OID 34656)
--- Name: orders; Type: TABLE; Schema: public; Owner: lykkex
---
 
 CREATE TABLE orders (
     id uuid NOT NULL,
@@ -46,54 +33,14 @@ CREATE TABLE orders (
     sequence_number bigint NOT NULL
 );
 
-
-ALTER TABLE orders OWNER TO lykkex;
-
---
--- TOC entry 3370 (class 2606 OID 33838)
--- Name: history history_pkey; Type: CONSTRAINT; Schema: public; Owner: lykkex
---
-
 ALTER TABLE ONLY history
     ADD CONSTRAINT history_pkey PRIMARY KEY (id, wallet_id);
-
-
---
--- TOC entry 3374 (class 2606 OID 34663)
--- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: lykkex
---
 
 ALTER TABLE ONLY orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
 
-
---
--- TOC entry 3371 (class 1259 OID 34646)
--- Name: history_type_pair_date_idx; Type: INDEX; Schema: public; Owner: lykkex
---
-
 CREATE INDEX history_type_pair_date_idx ON public.history USING btree (type, assetpair_id, create_dt DESC);
-
-
---
--- TOC entry 3372 (class 1259 OID 34642)
--- Name: history_wallet_type_date_idx; Type: INDEX; Schema: public; Owner: lykkex
---
 
 CREATE INDEX history_wallet_type_date_idx ON public.history USING btree (wallet_id, type, create_dt DESC);
 
-
---
--- TOC entry 3375 (class 1259 OID 38161)
--- Name: orders_wallet_type_date_idx; Type: INDEX; Schema: public; Owner: lykkex
---
-
 CREATE INDEX orders_wallet_type_date_idx ON public.orders USING btree (wallet_id, type, create_dt DESC);
-
-
--- Completed on 2018-08-08 14:09:30
-
---
--- PostgreSQL database dump complete
---
-
