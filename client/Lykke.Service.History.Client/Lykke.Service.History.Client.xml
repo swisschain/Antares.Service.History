@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Lykke.Service.History.Client</name>
+    </assembly>
+    <members>
+        <member name="M:Lykke.Service.History.Client.AutofacExtension.RegisterHistoryClient(Autofac.ContainerBuilder,Lykke.Service.History.Client.HistoryServiceClientSettings,System.Func{Lykke.HttpClientGenerator.HttpClientGeneratorBuilder,Lykke.HttpClientGenerator.HttpClientGeneratorBuilder})">
+            <summary>
+                Registers <see cref="T:Lykke.Service.History.Client.IHistoryClient" /> in Autofac container using <see cref="T:Lykke.Service.History.Client.HistoryServiceClientSettings" />.
+            </summary>
+            <param name="builder">Autofac container builder.</param>
+            <param name="settings">History client settings.</param>
+            <param name="builderConfigure">Optional <see cref="T:Lykke.HttpClientGenerator.HttpClientGeneratorBuilder" /> configure handler.</param>
+        </member>
+        <member name="T:Lykke.Service.History.Client.HistoryClient">
+            <summary>
+                History API aggregating interface.
+            </summary>
+        </member>
+        <member name="M:Lykke.Service.History.Client.HistoryClient.#ctor(Lykke.HttpClientGenerator.IHttpClientGenerator)">
+            <summary>C-tor</summary>
+        </member>
+        <member name="P:Lykke.Service.History.Client.HistoryClient.Api">
+            <summary>Inerface to History Api.</summary>
+        </member>
+        <member name="T:Lykke.Service.History.Client.HistoryServiceClientSettings">
+            <summary>
+                History client settings.
+            </summary>
+        </member>
+        <member name="P:Lykke.Service.History.Client.HistoryServiceClientSettings.ServiceUrl">
+            <summary>Service url.</summary>
+        </member>
+        <member name="T:Lykke.Service.History.Client.IHistoryApi">
+            <summary>
+                History client API interface.
+            </summary>
+        </member>
+        <member name="T:Lykke.Service.History.Client.IHistoryClient">
+            <summary>
+                History client interface.
+            </summary>
+        </member>
+        <member name="P:Lykke.Service.History.Client.IHistoryClient.Api">
+            <summary>Application Api interface</summary>
+        </member>
+    </members>
+</doc>
