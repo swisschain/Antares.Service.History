@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using Lykke.Service.History.Core;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
@@ -32,11 +33,11 @@ namespace Lykke.Service.History.AutoMapper
             CreateMap<ExecutionProcessedEvent, IEnumerable<Order>>().ConvertUsing<ExecutionConverter>();
 
             CreateMap<OrderPlacedEvent, OrderEvent>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => Guid.NewGuid()))
+                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)s.Status)))
                 .ForMember(x => x.Timestamp, o => o.MapFrom(s => s.CreateDt));
 
             CreateMap<OrderCancelledEvent, OrderEvent>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => Guid.NewGuid()));
+                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)s.Status)));
         }
     }
 }
