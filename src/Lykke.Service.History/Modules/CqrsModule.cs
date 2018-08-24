@@ -49,11 +49,14 @@ namespace Lykke.Service.History.Modules
                 .WithParameter(TypedParameter.From(_settings.RabbitConnString))
                 .SingleInstance();
 
+            builder.RegisterType<OrderEventQueueReader>()
+                .WithParameter(TypedParameter.From(_settings.RabbitConnString))
+                .SingleInstance();
+
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
             builder.RegisterType<TransactionHashProjection>();
-            builder.RegisterType<OrderEventProjection>();
 
             builder.RegisterType<EthereumCommandHandler>();
 
@@ -111,33 +114,35 @@ namespace Lykke.Service.History.Modules
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
+
                     .ListeningEvents(typeof(CashOutProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
+
                     .ListeningEvents(typeof(CashTransferProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
-                    .ListeningEvents(typeof(OrderPlacedEvent), typeof(OrderCancelledEvent))
-                    .From(PostProcessingBoundedContext.Name)
-                    .On(defaultRoute)
-                    .WithProjection(typeof(OrderEventProjection), PostProcessingBoundedContext.Name)
+
                     .ListeningEvents(typeof(CashoutCompletedEvent), typeof(CashinCompletedEvent))
                     .From(BitcoinBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BitcoinBoundedContext.Name)
+
                     .ListeningEvents(typeof(Job.BlockchainCashinDetector.Contract.Events.CashinCompletedEvent))
                     .From(BlockchainCashinDetectorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
+
                     .ListeningEvents(typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent))
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name),
+
                 Register.BoundedContext("tx-handler.ethereum.commands")
                     .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand),
                         typeof(ProcessHotWalletErc20EventCommand))

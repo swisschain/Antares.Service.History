@@ -9,41 +9,36 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.History.Core.Domain.History;
-using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
-using MoreLinq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
-    public class ExecutionQueueReader : IDisposable
+    public class OrderEventQueueReader : IDisposable
     {
-        private const int ExecutionsBulkSize = 100;
-        private const int TradesBulkSize = 5000;
+        private const int OrderEventBulkSize = 100;
 
         private readonly string _connectionString;
         private readonly IHealthNotifier _healthNotifier;
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _log;
-        private readonly IOrdersRepository _ordersRepository;
         private CancellationTokenSource _cancellationTokenSource;
         private Task _dbWriterTask;
 
-        private ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>> _queue;
+        private ConcurrentQueue<CustomQueueItem<OrderEvent>> _queue;
         private Task _queueReaderTask;
 
 
-        public ExecutionQueueReader(
+        public OrderEventQueueReader(
             ILogFactory logFactory,
             string connectionString,
             IHistoryRecordsRepository historyRecordsRepository,
-            IOrdersRepository ordersRepository, IHealthNotifier healthNotifier)
+            IHealthNotifier healthNotifier)
         {
             _connectionString = connectionString;
             _historyRecordsRepository = historyRecordsRepository;
-            _ordersRepository = ordersRepository;
             _healthNotifier = healthNotifier;
             _log = logFactory.CreateLog(this);
         }
@@ -56,13 +51,13 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         public void Start()
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _queue = new ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>>();
+            _queue = new ConcurrentQueue<CustomQueueItem<OrderEvent>>();
             _dbWriterTask = StartDbWriter();
             _queueReaderTask = StartQueueReader().ContinueWith(x =>
             {
                 if (x.IsFaulted)
                 {
-                    _healthNotifier.Notify("Execution queue reader unexpectedly stopped");
+                    _healthNotifier.Notify("Order event queue reader unexpectedly stopped");
                     _log.Error(x.Exception);
                 }
             });
@@ -78,7 +73,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         private async Task StartQueueReader()
         {
             var exchangeName = $"lykke.{PostProcessingBoundedContext.Name}.events.exchange";
-            var queueName = $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.execution-reader";
+            var queueName = $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.order-event-reader";
 
             var factory = new ConnectionFactory
             {
@@ -88,24 +83,40 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.BasicQos(0, ExecutionsBulkSize * 2, false);
+                channel.BasicQos(0, OrderEventBulkSize * 2, false);
 
                 channel.QueueDeclare(queueName, true, false, false);
 
-                channel.QueueBind(queueName, exchangeName, nameof(ExecutionProcessedEvent));
+                channel.QueueBind(queueName, exchangeName, nameof(OrderPlacedEvent));
+                channel.QueueBind(queueName, exchangeName, nameof(OrderCancelledEvent));
 
                 var consumer = new EventingBasicConsumer(channel);
 
-                var deserializer = new ProtobufMessageDeserializer<ExecutionProcessedEvent>();
+                var orderPlacedDeserializer = new ProtobufMessageDeserializer<OrderPlacedEvent>();
+                var orderCancelledDeserializer = new ProtobufMessageDeserializer<OrderCancelledEvent>();
 
                 consumer.Received += (o, basicDeliverEventArgs) =>
                 {
                     try
                     {
-                        var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
+                        switch (basicDeliverEventArgs.RoutingKey)
+                        {
+                            case nameof(OrderPlacedEvent):
+                                _queue.Enqueue(new CustomQueueItem<OrderEvent>(
+                                    Mapper.Map<OrderEvent>(
+                                        orderPlacedDeserializer.Deserialize(basicDeliverEventArgs.Body)),
+                                    basicDeliverEventArgs.DeliveryTag, channel));
+                                break;
+                            case nameof(OrderCancelledEvent):
+                                _queue.Enqueue(new CustomQueueItem<OrderEvent>(
+                                    Mapper.Map<OrderEvent>(
+                                        orderCancelledDeserializer.Deserialize(basicDeliverEventArgs.Body)),
+                                    basicDeliverEventArgs.DeliveryTag, channel));
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(basicDeliverEventArgs.RoutingKey);
+                        }
 
-                        _queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(Mapper.Map<IEnumerable<Order>>(message),
-                            basicDeliverEventArgs.DeliveryTag, channel));
                     }
                     catch (Exception e)
                     {
@@ -135,10 +146,10 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 try
                 {
                     var exceptionThrowed = false;
-                    var list = new List<CustomQueueItem<IEnumerable<Order>>>();
+                    var list = new List<CustomQueueItem<OrderEvent>>();
                     try
                     {
-                        for (var i = 0; i < ExecutionsBulkSize; i++)
+                        for (var i = 0; i < OrderEventBulkSize; i++)
                             if (_queue.TryDequeue(out var customQueueItem))
                                 list.Add(customQueueItem);
                             else
@@ -146,18 +157,9 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 
                         if (list.Count > 0)
                         {
-                            isFullBatch = list.Count == ExecutionsBulkSize;
+                            isFullBatch = list.Count == OrderEventBulkSize;
 
-                            var orders = list.SelectMany(x => x.Value).ToList();
-
-                            await _ordersRepository.UpsertBulkAsync(orders);
-
-                            var trades = orders.SelectMany(x => x.Trades);
-
-                            var batched = trades.Batch(TradesBulkSize).ToList();
-
-                            foreach (var tradesBatch in batched)
-                                await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
+                            await _historyRecordsRepository.InsertBulkAsync(list.Select(x => x.Value));
                         }
                     }
                     catch (Exception e)
