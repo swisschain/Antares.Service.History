@@ -13,7 +13,7 @@ namespace Lykke.Service.History.PostgresRepositories.Mappings
                 .MapText("asset_id", x => x.AssetId)
                 .MapText("assetpair_id", x => x.AssetPairId)
                 .MapNumeric("volume", x => x.Volume)
-                .MapInteger("type", x => (int)x.Type)
+                .MapInteger("type", x => (int) x.Type)
                 .MapTimeStamp("create_dt", x => x.Timestamp)
                 .MapJsonb("context", x => x.Context);
         }

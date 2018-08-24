@@ -13,11 +13,37 @@ namespace Lykke.Service.History.Tests
     [Collection("history-tests")]
     public class TransferTests
     {
-        private readonly IContainer _container;
-
         public TransferTests(TestInitialization initialization)
         {
             _container = initialization.Container;
+        }
+
+        private readonly IContainer _container;
+
+        private CashTransferProcessedEvent CreateTransferRecord()
+        {
+            var cqrs = _container.Resolve<ICqrsEngine>();
+
+            var id = Guid.NewGuid();
+            var walletFrom = Guid.NewGuid();
+            var walletTo = Guid.NewGuid();
+            var volume = new Random().Next(1, 100);
+
+            var @event = new CashTransferProcessedEvent
+            {
+                OperationId = id,
+                FromWalletId = walletFrom,
+                ToWalletId = walletTo,
+                Volume = volume,
+                AssetId = "EUR",
+                Timestamp = DateTime.UtcNow,
+                FeeSize = 0.5M,
+                FeeSourceWalletId = walletTo
+            };
+
+            cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
+
+            return @event;
         }
 
         [Fact]
@@ -47,32 +73,5 @@ namespace Lykke.Service.History.Tests
             Assert.Null(transferFrom.FeeSize);
             Assert.Equal(command.FeeSize, transferTo.FeeSize);
         }
-
-        private CashTransferProcessedEvent CreateTransferRecord()
-        {
-            var cqrs = _container.Resolve<ICqrsEngine>();
-
-            var id = Guid.NewGuid();
-            var walletFrom = Guid.NewGuid();
-            var walletTo = Guid.NewGuid();
-            var volume = new Random().Next(1, 100);
-
-            var @event = new CashTransferProcessedEvent
-            {
-                OperationId = id,
-                FromWalletId = walletFrom,
-                ToWalletId = walletTo,
-                Volume = volume,
-                AssetId = "EUR",
-                Timestamp = DateTime.UtcNow,
-                FeeSize = 0.5M,
-                FeeSourceWalletId = walletTo
-            };
-
-            cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
-
-            return @event;
-        }
     }
 }
-

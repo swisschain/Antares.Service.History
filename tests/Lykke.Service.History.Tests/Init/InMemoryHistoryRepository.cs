@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Lykke.Service.History.Core.Domain;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 
@@ -43,10 +42,11 @@ namespace Lykke.Service.History.Tests.Init
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset, int limit, string assetpairId = null,
+        public Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
+            int limit, string assetpairId = null,
             string assetId = null)
         {
-            var typesMap = new Dictionary<HistoryType, Type>()
+            var typesMap = new Dictionary<HistoryType, Type>
             {
                 {HistoryType.CashIn, typeof(Cashin)},
                 {HistoryType.CashOut, typeof(Cashout)},
@@ -58,12 +58,12 @@ namespace Lykke.Service.History.Tests.Init
             var neededTypes = type.Select(x => typesMap[x]);
 
             return Task.FromResult(_data.Where(x => x.WalletId == walletId && neededTypes.Contains(x.GetType()))
-                .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic)x).AssetPairId == assetpairId)
-                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic)x).AssetId == assetId || ((dynamic)x).OppositeAssetId == assetId)
+                .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic) x).AssetPairId == assetpairId)
+                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic) x).AssetId == assetId ||
+                            ((dynamic) x).OppositeAssetId == assetId)
                 .OrderByDescending(x => x.Timestamp)
                 .Skip(offset)
                 .Take(limit));
         }
     }
 }
-

@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-using AutoMapper;
-using Lykke.Service.History.Core.Domain;
+﻿using AutoMapper;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
@@ -71,7 +69,4 @@ namespace Lykke.Service.History.PostgresRepositories.Mappings
             CreateMap<OrderEntity, Order>();
         }
     }
-
-
 }
-

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
@@ -28,9 +27,9 @@ namespace Lykke.Service.History.Controllers
 
         [HttpGet("list")]
         public async Task<IEnumerable<Order>> GetOrders(
-            [FromQuery]Guid walletId,
-            [FromQuery(Name = "status")]OrderStatus[] status,
-            [FromQuery(Name = "type")]OrderType[] type,
+            [FromQuery] Guid walletId,
+            [FromQuery(Name = "status")] OrderStatus[] status,
+            [FromQuery(Name = "type")] OrderType[] type,
             int offset = 0,
             int limit = 100)
         {

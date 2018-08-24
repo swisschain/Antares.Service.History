@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Autofac;
 using AutoMapper;
-using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
@@ -20,7 +19,6 @@ using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader.ReloadingManager;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Lykke.Service.History.Tests.Init
@@ -41,12 +39,12 @@ namespace Lykke.Service.History.Tests.Init
             });
         }
 
-        public IContainer Container { get; }
-
         public TestInitialization()
         {
             Container = CreateContainer();
         }
+
+        public IContainer Container { get; }
 
         public IContainer CreateContainer()
         {
@@ -54,7 +52,8 @@ namespace Lykke.Service.History.Tests.Init
 
             builder.RegisterInstance(LogFactory.Create().AddUnbufferedConsole()).As<ILogFactory>().SingleInstance();
 
-            builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>().SingleInstance();
+            builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>()
+                .SingleInstance();
 
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
@@ -96,7 +95,7 @@ namespace Lykke.Service.History.Tests.Init
             }
             else
             {
-                var settings = new AppSettings()
+                var settings = new AppSettings
                 {
                     HistoryService = new HistorySettings
                     {
@@ -125,20 +124,15 @@ namespace Lykke.Service.History.Tests.Init
                 new DefaultEndpointProvider(),
                 true,
                 Register.DefaultEndpointResolver(new InMemoryEndpointResolver()),
-
                 Register.BoundedContext(PostProcessingBoundedContext.Name)
-                    
-                     
                     .PublishingEvents(typeof(CashInProcessedEvent))
                     .With(defaultRoute)
                     .WithLoopback()
                     .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
-
                     .PublishingEvents(typeof(CashOutProcessedEvent))
                     .With(defaultRoute)
                     .WithLoopback()
                     .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
-
                     .PublishingEvents(typeof(CashTransferProcessedEvent))
                     .With(defaultRoute)
                     .WithLoopback()

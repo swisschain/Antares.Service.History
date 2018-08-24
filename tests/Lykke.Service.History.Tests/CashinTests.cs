@@ -13,32 +13,12 @@ namespace Lykke.Service.History.Tests
     [Collection("history-tests")]
     public class CashinTests
     {
-        private readonly IContainer _container;
-
         public CashinTests(TestInitialization initialization)
         {
             _container = initialization.Container;
         }
 
-        [Fact]
-        public async Task SaveCashin_Test()
-        {
-            var command = CreateCashinRecord();
-
-            await Task.Delay(3000);
-
-            var repo = _container.Resolve<IHistoryRecordsRepository>();
-
-            var item = await repo.Get(command.OperationId, command.WalletId);
-
-            Assert.NotNull(item);
-            Assert.True(item is Cashin);
-
-            var cashin = item as Cashin;
-
-            Assert.Equal(command.FeeSize, cashin.FeeSize);
-            Assert.Equal(Math.Abs(command.Volume), cashin.Volume);
-        }
+        private readonly IContainer _container;
 
         private CashInProcessedEvent CreateCashinRecord()
         {
@@ -61,6 +41,26 @@ namespace Lykke.Service.History.Tests
             cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
 
             return @event;
+        }
+
+        [Fact]
+        public async Task SaveCashin_Test()
+        {
+            var command = CreateCashinRecord();
+
+            await Task.Delay(3000);
+
+            var repo = _container.Resolve<IHistoryRecordsRepository>();
+
+            var item = await repo.Get(command.OperationId, command.WalletId);
+
+            Assert.NotNull(item);
+            Assert.True(item is Cashin);
+
+            var cashin = item as Cashin;
+
+            Assert.Equal(command.FeeSize, cashin.FeeSize);
+            Assert.Equal(Math.Abs(command.Volume), cashin.Volume);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Common;
 using Lykke.Service.History.Core.Domain.Enums;
@@ -30,9 +29,7 @@ namespace Lykke.Service.History.Tests.Init
                 return Task.FromResult(true);
             }
             if (current.SequenceNumber >= order.SequenceNumber)
-            {
                 return Task.FromResult(false);
-            }
 
             current.Type = order.Type;
             current.Status = order.Status;
@@ -57,9 +54,11 @@ namespace Lykke.Service.History.Tests.Init
             return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id));
         }
 
-        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset, int limit)
+        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset,
+            int limit)
         {
-            return Task.FromResult(_orders.Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
+            return Task.FromResult(_orders
+                .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
                 .Skip(offset).Take(limit));
         }
     }

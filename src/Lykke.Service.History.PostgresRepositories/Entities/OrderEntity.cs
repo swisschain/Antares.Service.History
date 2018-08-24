@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using Lykke.Service.History.Core.Domain.Enums;
 
 namespace Lykke.Service.History.PostgresRepositories.Entities

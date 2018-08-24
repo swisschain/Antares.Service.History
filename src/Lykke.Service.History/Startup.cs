@@ -1,12 +1,12 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using AutoMapper;
+using JetBrains.Annotations;
 using Lykke.Sdk;
+using Lykke.Service.History.AutoMapper;
+using Lykke.Service.History.PostgresRepositories.Mappings;
 using Lykke.Service.History.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using AutoMapper;
-using Lykke.Service.History.AutoMapper;
-using Lykke.Service.History.PostgresRepositories.Mappings;
 
 namespace Lykke.Service.History
 {
@@ -27,7 +27,7 @@ namespace Lykke.Service.History
                 cfg.AddProfiles(typeof(ServiceProfile));
                 cfg.AddProfiles(typeof(RepositoryProfile));
             });
-            
+
             return services.BuildServiceProvider<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -10,19 +9,30 @@ using Lykke.Service.History.PostgresRepositories.Entities;
 using Lykke.Service.History.PostgresRepositories.JsonbQuery;
 using Lykke.Service.History.PostgresRepositories.Mappings;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Npgsql;
-using NpgsqlTypes;
 using PostgreSQLCopyHelper;
 
 namespace Lykke.Service.History.PostgresRepositories.Repositories
 {
     public class HistoryRecordsRepository : IHistoryRecordsRepository
     {
-        private static readonly PostgreSQLCopyHelper<HistoryEntity> BulkMapping;
-
         private const string DuplicateSqlState = "23505";
+        private static readonly PostgreSQLCopyHelper<HistoryEntity> BulkMapping;
         private readonly ConnectionFactory _connectionFactory;
+
+        private readonly string _insertQuery = $@"
+insert into {Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
+    values (@Id, @WalletId, @AssetId, @AssetPairId, @Volume, @Type, @Timestamp, @Context::jsonb)
+ON CONFLICT (id, wallet_id) DO NOTHING;
+";
+
+        private readonly string _updateBlockchainHashQuery = $@"
+update {Constants.HistoryTableName}
+set context = jsonb_set(coalesce(context, '{{}}'), '{{{
+                nameof(HistoryEntityContext.BlockchainHash)
+            }}}', coalesce(to_jsonb(@Hash::text), jsonb 'null'))
+where id = @Id
+";
 
         static HistoryRecordsRepository()
         {
@@ -38,7 +48,8 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
         {
             using (var connection = _connectionFactory.CreateDataContext())
             {
-                return HistoryTypeMapper.Map(await connection.History.FirstOrDefaultAsync(x => x.Id == id && x.WalletId == walletId));
+                return HistoryTypeMapper.Map(
+                    await connection.History.FirstOrDefaultAsync(x => x.Id == id && x.WalletId == walletId));
             }
         }
 
@@ -87,31 +98,21 @@ namespace Lykke.Service.History.PostgresRepositories.Repositories
             }
         }
 
-        public async Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset, int limit, string assetPairId = null, string assetId = null)
+        public async Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
+            int limit, string assetPairId = null, string assetId = null)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
                 var query = context.History
                     .Where(x => x.WalletId == walletId && type.Contains(x.Type))
                     .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
-                    .Where(x => string.IsNullOrWhiteSpace(assetId) || x.AssetId == assetId || x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeOppositeAssetId)) == assetId)
+                    .Where(x => string.IsNullOrWhiteSpace(assetId) || x.AssetId == assetId ||
+                                (x.Type == HistoryType.Trade && x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeOppositeAssetId)) == assetId))
                     .Skip(offset)
                     .Take(limit);
 
                 return (await query.ToListAsync()).Select(HistoryTypeMapper.Map);
             }
         }
-
-        private readonly string _insertQuery = $@"
-insert into {Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
-    values (@Id, @WalletId, @AssetId, @AssetPairId, @Volume, @Type, @Timestamp, @Context::jsonb)
-ON CONFLICT (id, wallet_id) DO NOTHING;
-";
-
-        private readonly string _updateBlockchainHashQuery = $@"
-update {Constants.HistoryTableName}
-set context = jsonb_set(coalesce(context, '{{}}'), '{{{nameof(HistoryEntityContext.BlockchainHash)}}}', coalesce(to_jsonb(@Hash::text), jsonb 'null'))
-where id = @Id
-";
     }
 }

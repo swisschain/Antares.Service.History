@@ -15,6 +15,7 @@ namespace Lykke.Service.History.Core.Domain.History
 
         Task<bool> UpdateBlockchainHashAsync(Guid id, string hash);
 
-        Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset, int limit, string assetpairId = null, string assetId = null);
+        Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset, int limit,
+            string assetpairId = null, string assetId = null);
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Lykke.Service.History.Core.Domain.Enums;
 
 namespace Lykke.Service.History.Core.Domain.History

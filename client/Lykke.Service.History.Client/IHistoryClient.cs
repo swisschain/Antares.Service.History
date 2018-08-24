@@ -3,7 +3,7 @@
 namespace Lykke.Service.History.Client
 {
     /// <summary>
-    /// History client interface.
+    ///     History client interface.
     /// </summary>
     [PublicAPI]
     public interface IHistoryClient

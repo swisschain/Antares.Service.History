@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
@@ -11,14 +8,14 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 
         private readonly IModel _model;
 
-        public T Value { get; }
-
         public CustomQueueItem(T value, ulong deliveryTag, IModel model)
         {
             Value = value;
             _deliveryTag = deliveryTag;
             _model = model;
         }
+
+        public T Value { get; }
 
         public void Accept()
         {

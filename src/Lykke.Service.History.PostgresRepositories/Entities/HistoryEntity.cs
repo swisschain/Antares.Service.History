@@ -33,10 +33,12 @@ namespace Lykke.Service.History.PostgresRepositories.Entities
         [Column("context", TypeName = "jsonb")]
         public string Context
         {
-            get => ContextObject == null ? null : JsonConvert.SerializeObject(ContextObject, new JsonSerializerSettings
-            {
-                DefaultValueHandling = DefaultValueHandling.Ignore
-            });
+            get => ContextObject == null
+                ? null
+                : JsonConvert.SerializeObject(ContextObject, new JsonSerializerSettings
+                {
+                    DefaultValueHandling = DefaultValueHandling.Ignore
+                });
             set => ContextObject = value?.DeserializeJson<HistoryEntityContext>();
         }
 

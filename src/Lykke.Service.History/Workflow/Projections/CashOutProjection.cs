@@ -24,9 +24,10 @@ namespace Lykke.Service.History.Workflow.Projections
             var entity = Mapper.Map<Cashout>(@event);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
-            {
-                _logger.Warning($"Skipped duplicated cashout record", context: new { id = @event.OperationId });
-            }
+                _logger.Warning($"Skipped duplicated cashout record", context: new
+                {
+                    id = @event.OperationId
+                });
 
             return CommandHandlingResult.Ok();
         }

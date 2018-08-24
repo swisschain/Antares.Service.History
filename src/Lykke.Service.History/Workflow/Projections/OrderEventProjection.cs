@@ -24,9 +24,12 @@ namespace Lykke.Service.History.Workflow.Projections
             var entity = Mapper.Map<OrderEvent>(@event);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
-            {
-                _logger.Warning($"Skipped duplicated cashin record", context: new { id = entity.Id, orderId = @event.OrderId, type = "placed" });
-            }
+                _logger.Warning($"Skipped duplicated 'order placed' record", context: new
+                {
+                    id = entity.Id,
+                    orderId = @event.OrderId,
+                    type = "placed"
+                });
 
             return CommandHandlingResult.Ok();
         }
@@ -36,9 +39,12 @@ namespace Lykke.Service.History.Workflow.Projections
             var entity = Mapper.Map<OrderEvent>(@event);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
-            {
-                _logger.Warning($"Skipped duplicated cashin record", context: new { id = entity.Id, orderId = @event.OrderId, type = "cancelled" });
-            }
+                _logger.Warning($"Skipped duplicated 'order cancelled' record", context: new
+                {
+                    id = entity.Id,
+                    orderId = @event.OrderId,
+                    type = "cancelled"
+                });
 
             return CommandHandlingResult.Ok();
         }

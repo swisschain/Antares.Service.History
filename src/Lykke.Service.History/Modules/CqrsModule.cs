@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Autofac;
-using Common.Log;
 using Lykke.Bitcoin.Contracts;
-using Lykke.Common.Chaos;
+using Lykke.Bitcoin.Contracts.Events;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
@@ -13,6 +10,7 @@ using Lykke.Job.BlockchainCashoutProcessor.Contract;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
+using Lykke.Messaging.Serialization;
 using Lykke.Sdk;
 using Lykke.Service.History.Settings;
 using Lykke.Service.History.Workflow.ExecutionProcessing;
@@ -21,6 +19,7 @@ using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader;
+using RabbitMQ.Client;
 
 namespace Lykke.Service.History.Modules
 {
@@ -35,9 +34,10 @@ namespace Lykke.Service.History.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>().SingleInstance();
+            builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>()
+                .SingleInstance();
 
-            var rabbitMqSettings = new RabbitMQ.Client.ConnectionFactory
+            var rabbitMqSettings = new ConnectionFactory
             {
                 Uri = _settings.RabbitConnString
             };
@@ -58,13 +58,13 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<EthereumCommandHandler>();
 
             builder.Register(ctx =>
-            {
-                var logFactory = ctx.Resolve<ILogFactory>();
-                var messagingEngine = new MessagingEngine(
-                    logFactory,
-                    new TransportResolver(
-                        new Dictionary<string, TransportInfo>
-                        {
+                {
+                    var logFactory = ctx.Resolve<ILogFactory>();
+                    var messagingEngine = new MessagingEngine(
+                        logFactory,
+                        new TransportResolver(
+                            new Dictionary<string, TransportInfo>
+                            {
                                 {
                                     "RabbitMq",
                                     new TransportInfo(
@@ -72,10 +72,10 @@ namespace Lykke.Service.History.Modules
                                         rabbitMqSettings.UserName,
                                         rabbitMqSettings.Password, "None", "RabbitMq")
                                 }
-                        }),
-                    new RabbitMqTransportFactory(logFactory));
-                return CreateEngine(ctx, messagingEngine, logFactory);
-            })
+                            }),
+                        new RabbitMqTransportFactory(logFactory));
+                    return CreateEngine(ctx, messagingEngine, logFactory);
+                })
                 .As<ICqrsEngine>()
                 .AutoActivate()
                 .SingleInstance();
@@ -91,12 +91,12 @@ namespace Lykke.Service.History.Modules
 
             var sagasMessagePackEndpointResolver = new RabbitMqConventionEndpointResolver(
                 "RabbitMq",
-                Messaging.Serialization.SerializationFormat.MessagePack,
+                SerializationFormat.MessagePack,
                 environment: "lykke");
 
             var sagasProtobufEndpointResolver = new RabbitMqConventionEndpointResolver(
                 "RabbitMq",
-                Messaging.Serialization.SerializationFormat.ProtoBuf,
+                SerializationFormat.ProtoBuf,
                 environment: "lykke");
 
             return new CqrsEngine(
@@ -106,48 +106,41 @@ namespace Lykke.Service.History.Modules
                 new DefaultEndpointProvider(),
                 true,
                 Register.DefaultEndpointResolver(sagasProtobufEndpointResolver),
-
                 Register.BoundedContext(boundedContext)
                     .ListeningEvents(typeof(CashInProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
-
                     .ListeningEvents(typeof(CashOutProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
-
                     .ListeningEvents(typeof(CashTransferProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
-
                     .ListeningEvents(typeof(OrderPlacedEvent), typeof(OrderCancelledEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
                     .WithProjection(typeof(OrderEventProjection), PostProcessingBoundedContext.Name)
-
-                    .ListeningEvents(typeof(Bitcoin.Contracts.Events.CashoutCompletedEvent), typeof(Bitcoin.Contracts.Events.CashinCompletedEvent))
+                    .ListeningEvents(typeof(CashoutCompletedEvent), typeof(CashinCompletedEvent))
                     .From(BitcoinBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BitcoinBoundedContext.Name)
-
                     .ListeningEvents(typeof(Job.BlockchainCashinDetector.Contract.Events.CashinCompletedEvent))
                     .From(BlockchainCashinDetectorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
-
                     .ListeningEvents(typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent))
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name),
-
                 Register.BoundedContext("tx-handler.ethereum.commands")
-                    .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand), typeof(ProcessHotWalletErc20EventCommand))
+                    .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand),
+                        typeof(ProcessHotWalletErc20EventCommand))
                     .On("history")
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithCommandsHandler<EthereumCommandHandler>());

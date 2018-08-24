@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Lykke.Service.History.PostgresRepositories.Entities;
+﻿using Lykke.Service.History.PostgresRepositories.Entities;
 using Lykke.Service.History.PostgresRepositories.JsonbQuery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Microsoft.EntityFrameworkCore.Query.Sql;
 
 namespace Lykke.Service.History.PostgresRepositories
 {

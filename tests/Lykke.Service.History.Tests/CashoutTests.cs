@@ -13,28 +13,12 @@ namespace Lykke.Service.History.Tests
     [Collection("history-tests")]
     public class CashoutTests
     {
-        private readonly IContainer _container;
-
         public CashoutTests(TestInitialization initialization)
         {
             _container = initialization.Container;
         }
 
-        [Fact]
-        public async Task SaveCashout_Test()
-        {
-            var command = CreateCashoutRecord();
-
-            await Task.Delay(3000);
-
-            var repo = _container.Resolve<IHistoryRecordsRepository>();
-
-            var item = await repo.Get(command.OperationId, command.WalletId);
-
-            Assert.NotNull(item);
-            Assert.True(item is Cashout);
-            Assert.Equal(-Math.Abs(command.Volume), (item as Cashout).Volume);
-        }
+        private readonly IContainer _container;
 
         private CashOutProcessedEvent CreateCashoutRecord()
         {
@@ -56,6 +40,22 @@ namespace Lykke.Service.History.Tests
             cqrs.PublishEvent(@event, PostProcessingBoundedContext.Name);
 
             return @event;
+        }
+
+        [Fact]
+        public async Task SaveCashout_Test()
+        {
+            var command = CreateCashoutRecord();
+
+            await Task.Delay(3000);
+
+            var repo = _container.Resolve<IHistoryRecordsRepository>();
+
+            var item = await repo.Get(command.OperationId, command.WalletId);
+
+            Assert.NotNull(item);
+            Assert.True(item is Cashout);
+            Assert.Equal(-Math.Abs(command.Volume), (item as Cashout).Volume);
         }
     }
 }

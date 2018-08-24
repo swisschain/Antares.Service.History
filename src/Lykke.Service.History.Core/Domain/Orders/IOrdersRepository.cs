@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Lykke.Service.History.Core.Domain.Enums;
 
@@ -14,6 +13,7 @@ namespace Lykke.Service.History.Core.Domain.Orders
 
         Task<Order> Get(Guid id);
 
-        Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset, int limit);
+        Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset,
+            int limit);
     }
 }

@@ -37,10 +37,8 @@
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\client\Lykke.Service.History.Contracts\Lykke.Service.History.Contracts.csproj" />
     <ProjectReference Include="..\Lykke.Service.History.PostgresRepositories\Lykke.Service.History.PostgresRepositories.csproj" />
     <ProjectReference Include="..\Lykke.Service.History.Core\Lykke.Service.History.Core.csproj" />
-    <ProjectReference Include="..\Lykke.Service.History.Services\Lykke.Service.History.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

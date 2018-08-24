@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +15,6 @@ using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using MoreLinq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using ConnectionFactory = RabbitMQ.Client.ConnectionFactory;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
@@ -27,15 +24,15 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         private const int TradesBulkSize = 5000;
 
         private readonly string _connectionString;
-        private readonly IHistoryRecordsRepository _historyRecordsRepository;
-        private readonly IOrdersRepository _ordersRepository;
-        private readonly ILog _log;
         private readonly IHealthNotifier _healthNotifier;
+        private readonly IHistoryRecordsRepository _historyRecordsRepository;
+        private readonly ILog _log;
+        private readonly IOrdersRepository _ordersRepository;
+        private CancellationTokenSource _cancellationTokenSource;
+        private Task _dbWriterTask;
 
         private ConcurrentQueue<CustomQueueItem<IEnumerable<Order>>> _queue;
-        private Task _dbWriterTask;
         private Task _queueReaderTask;
-        private CancellationTokenSource _cancellationTokenSource;
 
 
         public ExecutionQueueReader(
@@ -49,6 +46,11 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             _ordersRepository = ordersRepository;
             _healthNotifier = healthNotifier;
             _log = logFactory.CreateLog(this);
+        }
+
+        public void Dispose()
+        {
+            Stop();
         }
 
         public void Start()
@@ -88,9 +90,9 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             {
                 channel.BasicQos(0, ExecutionsBulkSize * 2, false);
 
-                channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
+                channel.QueueDeclare(queueName, true, false, false);
 
-                channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: nameof(ExecutionProcessedEvent));
+                channel.QueueBind(queueName, exchangeName, nameof(ExecutionProcessedEvent));
 
                 var consumer = new EventingBasicConsumer(channel);
 
@@ -102,7 +104,8 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     {
                         var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
 
-                        _queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(Mapper.Map<IEnumerable<Order>>(message), basicDeliverEventArgs.DeliveryTag, channel));
+                        _queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(Mapper.Map<IEnumerable<Order>>(message),
+                            basicDeliverEventArgs.DeliveryTag, channel));
                     }
                     catch (Exception e)
                     {
@@ -136,12 +139,10 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     try
                     {
                         for (var i = 0; i < ExecutionsBulkSize; i++)
-                        {
                             if (_queue.TryDequeue(out var customQueueItem))
                                 list.Add(customQueueItem);
                             else
                                 break;
-                        }
 
                         if (list.Count > 0)
                         {
@@ -156,9 +157,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                             var batched = trades.Batch(TradesBulkSize).ToList();
 
                             foreach (var tradesBatch in batched)
-                            {
                                 await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
-                            }
                         }
                     }
                     catch (Exception e)
@@ -186,11 +185,6 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     await Task.Delay(isFullBatch ? 1 : 1000);
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            Stop();
         }
     }
 }

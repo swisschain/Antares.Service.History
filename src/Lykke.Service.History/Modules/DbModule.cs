@@ -19,7 +19,8 @@ namespace Lykke.Service.History.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterInstance(new ConnectionFactory(_appSettings.CurrentValue.HistoryService.Db.PostgresDataConnString));
+            builder.RegisterInstance(
+                new ConnectionFactory(_appSettings.CurrentValue.HistoryService.Db.PostgresDataConnString));
 
             builder.RegisterType<HistoryRecordsRepository>().As<IHistoryRecordsRepository>();
 

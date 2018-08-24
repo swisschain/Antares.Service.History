@@ -8,7 +8,8 @@ namespace Lykke.Service.History.AutoMapper
 {
     public class TransferConverter : ITypeConverter<CashTransferProcessedEvent, IEnumerable<Transfer>>
     {
-        public IEnumerable<Transfer> Convert(CashTransferProcessedEvent source, IEnumerable<Transfer> destination, ResolutionContext context)
+        public IEnumerable<Transfer> Convert(CashTransferProcessedEvent source, IEnumerable<Transfer> destination,
+            ResolutionContext context)
         {
             yield return new Transfer
             {
@@ -27,7 +28,7 @@ namespace Lykke.Service.History.AutoMapper
                 Volume = Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
                 AssetId = source.AssetId,
-                FeeSize = source.ToWalletId == source.FeeSourceWalletId ? source.FeeSize: null
+                FeeSize = source.ToWalletId == source.FeeSourceWalletId ? source.FeeSize : null
             };
         }
     }

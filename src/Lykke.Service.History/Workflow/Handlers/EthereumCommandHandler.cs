@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
@@ -24,10 +22,13 @@ namespace Lykke.Service.History.Workflow.Handlers
 
         public async Task<CommandHandlingResult> Handle(SaveEthInHistoryCommand command)
         {
-            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.CashinOperationId, command.TransactionHash))
-            {
-                _logger.Warning($"Transaction hash was not set, ETH/ERC20 cashin", context: new { id = command.CashinOperationId, hash = command.TransactionHash });
-            }
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(command.CashinOperationId,
+                command.TransactionHash))
+                _logger.Warning($"Transaction hash was not set, ETH/ERC20 cashin", context: new
+                {
+                    id = command.CashinOperationId,
+                    hash = command.TransactionHash
+                });
 
             return CommandHandlingResult.Ok();
         }
@@ -41,9 +42,11 @@ namespace Lykke.Service.History.Workflow.Handlers
             var id = Guid.Parse(command.OperationId);
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
-            {
-                _logger.Warning($"Transaction hash was not set, ERC20 cashout", context: new { id = id, hash = command.TransactionHash });
-            }
+                _logger.Warning($"Transaction hash was not set, ERC20 cashout", context: new
+                {
+                    id,
+                    hash = command.TransactionHash
+                });
 
             return CommandHandlingResult.Ok();
         }
@@ -57,15 +60,17 @@ namespace Lykke.Service.History.Workflow.Handlers
             var id = Guid.Parse(command.OperationId);
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
-            {
-                _logger.Warning($"Transaction hash was not set, ETH cashout", context: new { id = id, hash = command.TransactionHash });
-            }
+                _logger.Warning($"Transaction hash was not set, ETH cashout", context: new
+                {
+                    id,
+                    hash = command.TransactionHash
+                });
 
             return CommandHandlingResult.Ok();
         }
     }
 
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject(true)]
     public class SaveEthInHistoryCommand
     {
         public string TransactionHash { get; set; }
@@ -76,7 +81,7 @@ namespace Lykke.Service.History.Workflow.Handlers
         public Guid CashinOperationId { get; set; }
     }
 
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject(true)]
     public class ProcessEthCoinEventCommand
     {
         public string OperationId { get; set; }
@@ -90,7 +95,7 @@ namespace Lykke.Service.History.Workflow.Handlers
         public DateTime EventTime { get; set; }
     }
 
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject(true)]
     public class ProcessHotWalletErc20EventCommand
     {
         public string OperationId { get; set; }

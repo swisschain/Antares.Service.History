@@ -7,7 +7,8 @@ namespace Lykke.Service.History.AutoMapper
 {
     public class ExecutionConverter : ITypeConverter<ExecutionProcessedEvent, IEnumerable<Order>>
     {
-        public IEnumerable<Order> Convert(ExecutionProcessedEvent source, IEnumerable<Order> destination, ResolutionContext context)
+        public IEnumerable<Order> Convert(ExecutionProcessedEvent source, IEnumerable<Order> destination,
+            ResolutionContext context)
         {
             foreach (var item in source.Orders)
             {
@@ -16,9 +17,7 @@ namespace Lykke.Service.History.AutoMapper
                 order.SequenceNumber = source.SequenceNumber;
 
                 foreach (var trade in order.Trades)
-                {
                     trade.OrderId = order.Id;
-                }
 
                 yield return order;
             }

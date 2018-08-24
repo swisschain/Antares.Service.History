@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+﻿using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
@@ -13,7 +10,7 @@ namespace Lykke.Service.History.PostgresRepositories.JsonbQuery
             INpgsqlOptions npgsqlOptions) : base(dependencies, npgsqlOptions)
         {
             // ReSharper disable once VirtualMemberCallInConstructor
-            AddTranslators(new[] { new JsonbFindTranslator() });
+            AddTranslators(new[] {new JsonbFindTranslator()});
         }
     }
 }
