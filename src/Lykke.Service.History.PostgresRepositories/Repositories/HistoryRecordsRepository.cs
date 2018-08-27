@@ -107,7 +107,7 @@ where id = @Id
                     .Where(x => x.WalletId == walletId && type.Contains(x.Type))
                     .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
                     .Where(x => string.IsNullOrWhiteSpace(assetId) || x.AssetId == assetId ||
-                                (x.Type == HistoryType.Trade && x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeOppositeAssetId)) == assetId))
+                                (x.Type == HistoryType.Trade && x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeQuotingAssetId)) == assetId))
                     .OrderByDescending(x => x.Timestamp)
                     .Skip(offset)
                     .Take(limit);

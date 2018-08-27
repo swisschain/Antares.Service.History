@@ -12,7 +12,5 @@ namespace Lykke.Service.History.Core.Domain.History
         public Guid WalletId { get; set; }
 
         public DateTime Timestamp { get; set; }
-
-        public decimal Volume { get; set; }
     }
 }

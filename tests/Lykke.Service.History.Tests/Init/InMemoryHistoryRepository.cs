@@ -59,8 +59,8 @@ namespace Lykke.Service.History.Tests.Init
 
             return Task.FromResult(_data.Where(x => x.WalletId == walletId && neededTypes.Contains(x.GetType()))
                 .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic) x).AssetPairId == assetpairId)
-                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic) x).AssetId == assetId ||
-                            ((dynamic) x).OppositeAssetId == assetId)
+                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic) x).BaseAssetId == assetId ||
+                            ((dynamic) x).QuotingAssetId == assetId)
                 .OrderByDescending(x => x.Timestamp)
                 .Skip(offset)
                 .Take(limit));

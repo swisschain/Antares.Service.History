@@ -30,14 +30,14 @@ namespace Lykke.Service.History.PostgresRepositories.Entities
         public string FeeAssetId { get; set; }
 
         /// <summary>
-        ///     Opposite asset id for trade searching
+        ///     Quoting asset id for trade searching
         /// </summary>
-        public string TradeOppositeAssetId { get; set; }
+        public string TradeQuotingAssetId { get; set; }
 
         /// <summary>
-        ///     Necessary for single-side trade view
+        ///     Quoting volume - necessary for single-side trade view
         /// </summary>
-        public decimal TradeOppositeVolume { get; set; }
+        public decimal TradeQuotingVolume { get; set; }
 
         /// <summary>
         ///     Trade sequence number
