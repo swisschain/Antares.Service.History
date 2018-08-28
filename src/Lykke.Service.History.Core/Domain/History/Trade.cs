@@ -7,7 +7,9 @@ namespace Lykke.Service.History.Core.Domain.History
     {
         public string AssetPairId { get; set; }
 
-        public string AssetId { get; set; }
+        public decimal BaseVolume { get; set; }
+
+        public string BaseAssetId { get; set; }
 
         public decimal Price { get; set; }
 
@@ -19,9 +21,9 @@ namespace Lykke.Service.History.Core.Domain.History
 
         public TradeRole Role { get; set; }
 
-        public string OppositeAssetId { get; set; }
+        public string QuotingAssetId { get; set; }
 
-        public decimal OppositeVolume { get; set; }
+        public decimal QuotingVolume { get; set; }
 
         public Guid OrderId { get; set; }
 

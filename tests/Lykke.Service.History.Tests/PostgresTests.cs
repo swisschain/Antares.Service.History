@@ -70,11 +70,11 @@ namespace Lykke.Service.History.Tests
                 {
                     Id = Guid.NewGuid(),
                     WalletId = walletId,
-                    AssetId = assets[random.Next(assets.Length)],
+                    BaseAssetId = assets[random.Next(assets.Length)],
                     Timestamp = DateTime.UtcNow,
-                    Volume = -random.Next(1, 100),
-                    OppositeAssetId = assets[random.Next(assets.Length)],
-                    OppositeVolume = random.Next(1, 50),
+                    BaseVolume = -random.Next(1, 100),
+                    QuotingAssetId = assets[random.Next(assets.Length)],
+                    QuotingVolume = random.Next(1, 50),
                     AssetPairId = pairs[random.Next(pairs.Length)],
                     OrderId = Guid.NewGuid(),
                     Price = random.Next() * 100
@@ -105,10 +105,10 @@ namespace Lykke.Service.History.Tests
                     Id = Guid.NewGuid(),
                     WalletId = walletId,
                     AssetPairId = "BTCUSD",
-                    AssetId = "BTC",
-                    Volume = 5,
-                    OppositeAssetId = "USD",
-                    OppositeVolume = -5002,
+                    BaseAssetId = "BTC",
+                    BaseVolume = 5,
+                    QuotingAssetId = "USD",
+                    QuotingVolume = -5002,
                     Price = 10001,
                     Timestamp = date.AddMilliseconds(1)
                 };
@@ -160,7 +160,7 @@ namespace Lykke.Service.History.Tests
 
             var q4 = await repo.GetByWallet(walletId, new[] {HistoryType.Trade}, 0, 100, assetId: "USD");
 
-            Assert.Equal(data.OfType<Trade>().Count(x => x.AssetId == "USD" || x.OppositeAssetId == "USD"), q4.Count());
+            Assert.Equal(data.OfType<Trade>().Count(x => x.BaseAssetId == "USD" || x.QuotingAssetId == "USD"), q4.Count());
 
             var q5 = await repo.GetByWallet(walletId, new[] {HistoryType.Trade}, 0, 100, "BTCUSD");
 

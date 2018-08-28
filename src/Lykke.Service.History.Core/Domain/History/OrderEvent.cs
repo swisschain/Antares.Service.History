@@ -5,6 +5,8 @@ namespace Lykke.Service.History.Core.Domain.History
 {
     public class OrderEvent : BaseHistoryRecord
     {
+        public decimal Volume { get; set; }
+
         public string AssetPairId { get; set; }
 
         public Guid OrderId { get; set; }
