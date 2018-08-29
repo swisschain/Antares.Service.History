@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using Lykke.Service.History.Contracts.Orders;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.History.Controllers
 {
@@ -19,14 +23,32 @@ namespace Lykke.Service.History.Controllers
             _ordersRepository = ordersRepository;
         }
 
+        /// <summary>
+        /// Get order by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<Order> GetOrder(Guid id)
+        [SwaggerOperation("GetOrder")]
+        [ProducesResponseType(typeof(OrderModel), (int)HttpStatusCode.OK)]
+        public async Task<OrderModel> GetOrder(Guid id)
         {
-            return await _ordersRepository.Get(id);
+            return Mapper.Map<OrderModel>(await _ordersRepository.Get(id));
         }
 
+        /// <summary>
+        /// Get order list by wallet id
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="status"></param>
+        /// <param name="type"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         [HttpGet("list")]
-        public async Task<IEnumerable<Order>> GetOrders(
+        [SwaggerOperation("GetOrderList")]
+        [ProducesResponseType(typeof(IReadOnlyList<OrderModel>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<OrderModel>> GetOrders(
             [FromQuery] Guid walletId,
             [FromQuery(Name = "status")] OrderStatus[] status,
             [FromQuery(Name = "type")] OrderType[] type,
@@ -39,7 +61,9 @@ namespace Lykke.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
 
-            return await _ordersRepository.GetOrders(walletId, type, status, offset, limit);
+            var data = await _ordersRepository.GetOrders(walletId, type, status, offset, limit);
+
+            return Mapper.Map<IReadOnlyList<OrderModel>>(data);
         }
     }
 }

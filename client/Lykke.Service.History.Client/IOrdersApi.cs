@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Lykke.Service.History.Contracts.Enums;
+using Lykke.Service.History.Contracts.Orders;
+using Refit;
+
+namespace Lykke.Service.History.Client
+{
+    /// <summary>
+    ///     Orders client API interface.
+    /// </summary>
+    [PublicAPI]
+    public interface IOrdersApi
+    {
+        /// <summary>
+        /// Get order by id
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [Get("/api/orders/{orderId}")]
+        Task<OrderModel> GetOrderAsync(Guid orderId);
+
+        /// <summary>
+        /// Get history by wallet id
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="status"></param>
+        /// <param name="type"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        [Get("/api/orders/list")]
+        Task<IEnumerable<OrderModel>> GetOrdersByWalletAsync(Guid walletId, [Query(CollectionFormat.Multi)] OrderStatus[] status = null, [Query(CollectionFormat.Multi)] OrderType[] type = null, int offset = 0, int limit = 100);
+    }
+}
