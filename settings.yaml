@@ -11,6 +11,14 @@ HistoryService:
             settings-key: CqrsRabbitConnString
             types:
                 - RabbitMq
+    RabbitPrefetchCount:
+        settings-key: HistoryService-RabbitPrefetchCount
+        types:
+            - Optional
+    PostgresOrdersBatchSize:
+        settings-key: HistoryService-PostgresOrdersBatchSize
+        types:
+            - Optional
 MonitoringServiceClient:
     MonitoringServiceUrl:
         settings-key: MonitoringServiceUrl
