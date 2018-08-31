@@ -20,11 +20,12 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
     public class ExecutionQueueReader : IDisposable
     {
-        private const int ExecutionsBulkSize = 100;
         private const int TradesBulkSize = 5000;
 
         private readonly string _connectionString;
         private readonly IHealthNotifier _healthNotifier;
+        private readonly int _prefetchCount;
+        private readonly int _batchCount;
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _log;
         private readonly IOrdersRepository _ordersRepository;
@@ -39,12 +40,17 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             ILogFactory logFactory,
             string connectionString,
             IHistoryRecordsRepository historyRecordsRepository,
-            IOrdersRepository ordersRepository, IHealthNotifier healthNotifier)
+            IOrdersRepository ordersRepository, 
+            IHealthNotifier healthNotifier,
+            int prefetchCount,
+            int batchCount)
         {
             _connectionString = connectionString;
             _historyRecordsRepository = historyRecordsRepository;
             _ordersRepository = ordersRepository;
             _healthNotifier = healthNotifier;
+            _prefetchCount = prefetchCount;
+            _batchCount = batchCount;
             _log = logFactory.CreateLog(this);
         }
 
@@ -88,7 +94,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.BasicQos(0, ExecutionsBulkSize * 2, false);
+                channel.BasicQos(0, (ushort)_prefetchCount, false);
 
                 channel.QueueDeclare(queueName, true, false, false);
 
@@ -138,7 +144,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                     var list = new List<CustomQueueItem<IEnumerable<Order>>>();
                     try
                     {
-                        for (var i = 0; i < ExecutionsBulkSize; i++)
+                        for (var i = 0; i < _batchCount; i++)
                             if (_queue.TryDequeue(out var customQueueItem))
                                 list.Add(customQueueItem);
                             else
@@ -146,7 +152,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 
                         if (list.Count > 0)
                         {
-                            isFullBatch = list.Count == ExecutionsBulkSize;
+                            isFullBatch = list.Count == _batchCount;
 
                             var orders = list.SelectMany(x => x.Value).ToList();
 

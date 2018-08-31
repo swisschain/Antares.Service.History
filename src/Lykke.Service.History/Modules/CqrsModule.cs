@@ -25,11 +25,11 @@ namespace Lykke.Service.History.Modules
 {
     public class CqrsModule : Module
     {
-        private readonly CqrsSettings _settings;
+        private readonly HistorySettings _settings;
 
         public CqrsModule(IReloadingManager<AppSettings> settingsManager)
         {
-            _settings = settingsManager.CurrentValue.HistoryService.Cqrs;
+            _settings = settingsManager.CurrentValue.HistoryService;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -39,18 +39,22 @@ namespace Lykke.Service.History.Modules
 
             var rabbitMqSettings = new ConnectionFactory
             {
-                Uri = _settings.RabbitConnString
+                Uri = _settings.Cqrs.RabbitConnString
             };
             var rabbitMqEndpoint = rabbitMqSettings.Endpoint.ToString();
 
             builder.RegisterType<StartupManager>().As<IStartupManager>();
 
             builder.RegisterType<ExecutionQueueReader>()
-                .WithParameter(TypedParameter.From(_settings.RabbitConnString))
+                .WithParameter(TypedParameter.From(_settings.Cqrs.RabbitConnString))
+                .WithParameter(new NamedParameter("prefetchCount", _settings.RabbitPrefetchCount))
+                .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
                 .SingleInstance();
 
             builder.RegisterType<OrderEventQueueReader>()
-                .WithParameter(TypedParameter.From(_settings.RabbitConnString))
+                .WithParameter(TypedParameter.From(_settings.Cqrs.RabbitConnString))
+                .WithParameter(new NamedParameter("prefetchCount", _settings.RabbitPrefetchCount))
+                .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
                 .SingleInstance();
 
             builder.RegisterType<CashInProjection>();
