@@ -33,11 +33,13 @@ namespace Lykke.Service.History.AutoMapper
             CreateMap<ExecutionProcessedEvent, IEnumerable<Order>>().ConvertUsing<ExecutionConverter>();
 
             CreateMap<OrderPlacedEvent, OrderEvent>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)s.Status)))
+                .ForMember(x => x.Status, o => o.UseValue(OrderStatus.Placed))
+                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)OrderStatus.Placed)))
                 .ForMember(x => x.Timestamp, o => o.MapFrom(s => s.CreateDt));
 
             CreateMap<OrderCancelledEvent, OrderEvent>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)s.Status)));
+                .ForMember(x => x.Status, o => o.UseValue(OrderStatus.Cancelled))
+                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)OrderStatus.Cancelled)));
         }
     }
 }
