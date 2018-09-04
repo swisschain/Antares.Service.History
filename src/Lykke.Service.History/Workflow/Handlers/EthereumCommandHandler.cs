@@ -42,7 +42,10 @@ namespace Lykke.Service.History.Workflow.Handlers
                 return CommandHandlingResult.Ok();
 
             if (!Utils.TryExtractGuid(command.OperationId, out var id))
+            {
+                _logger.Warning($"Cannot parse OperationId: {command.OperationId}");
                 return CommandHandlingResult.Ok();
+            }
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
                 _logger.Warning($"Transaction hash was not set, ERC20 cashout", context: new
@@ -61,7 +64,10 @@ namespace Lykke.Service.History.Workflow.Handlers
                 return CommandHandlingResult.Ok();
 
             if (!Utils.TryExtractGuid(command.OperationId, out var id))
+            {
+                _logger.Warning($"Cannot parse OperationId: {command.OperationId}");
                 return CommandHandlingResult.Ok();
+            }
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
                 _logger.Warning($"Transaction hash was not set, ETH cashout", context: new
