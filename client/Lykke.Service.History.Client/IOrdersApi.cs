@@ -23,7 +23,7 @@ namespace Lykke.Service.History.Client
         Task<OrderModel> GetOrderAsync(Guid orderId);
 
         /// <summary>
-        /// Get history by wallet id
+        /// Get order list by wallet id
         /// </summary>
         /// <param name="walletId"></param>
         /// <param name="status"></param>
@@ -33,5 +33,15 @@ namespace Lykke.Service.History.Client
         /// <returns></returns>
         [Get("/api/orders/list")]
         Task<IEnumerable<OrderModel>> GetOrdersByWalletAsync(Guid walletId, [Query(CollectionFormat.Multi)] OrderStatus[] status = null, [Query(CollectionFormat.Multi)] OrderType[] type = null, int offset = 0, int limit = 100);
+
+        /// <summary>
+        /// Get active orders by wallet id
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        [Get("/api/orders/active")]
+        Task<IEnumerable<OrderModel>> GetActiveOrdersByWalletAsync(Guid walletId, int offset = 0, int limit = 100);
     }
 }

@@ -65,5 +65,28 @@ namespace Lykke.Service.History.Controllers
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
         }
+
+        /// <summary>
+        /// Get active orders by wallet id
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        [HttpGet("active")]
+        [SwaggerOperation("GetActiveOrders")]
+        [ProducesResponseType(typeof(IReadOnlyList<OrderModel>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<OrderModel>> GetActiveOrders(
+            [FromQuery] Guid walletId,
+            int offset = 0,
+            int limit = 100)
+        {
+            var data = await _ordersRepository.GetOrders(walletId,
+                new[] { OrderType.Limit, OrderType.StopLimit },
+                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending },
+                offset, limit);
+
+            return Mapper.Map<IReadOnlyList<OrderModel>>(data);
+        }
     }
 }
