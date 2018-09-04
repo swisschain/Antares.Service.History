@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.EthereumCore.Contracts.Enums;
+using Lykke.Service.History.Core;
 using Lykke.Service.History.Core.Domain.History;
 using MessagePack;
 
@@ -39,7 +41,11 @@ namespace Lykke.Service.History.Workflow.Handlers
             if (command.EventType != HotWalletEventType.CashoutCompleted)
                 return CommandHandlingResult.Ok();
 
-            var id = Guid.Parse(command.OperationId);
+            if (!Utils.TryExtractGuid(command.OperationId, out var id))
+            {
+                _logger.Warning($"Cannot parse OperationId: {command.OperationId}");
+                return CommandHandlingResult.Ok();
+            }
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
                 _logger.Warning($"Transaction hash was not set, ERC20 cashout", context: new
@@ -57,7 +63,11 @@ namespace Lykke.Service.History.Workflow.Handlers
             if (command.CoinEventType != CoinEventType.CashoutCompleted)
                 return CommandHandlingResult.Ok();
 
-            var id = Guid.Parse(command.OperationId);
+            if (!Utils.TryExtractGuid(command.OperationId, out var id))
+            {
+                _logger.Warning($"Cannot parse OperationId: {command.OperationId}");
+                return CommandHandlingResult.Ok();
+            }
 
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(id, command.TransactionHash))
                 _logger.Warning($"Transaction hash was not set, ETH cashout", context: new

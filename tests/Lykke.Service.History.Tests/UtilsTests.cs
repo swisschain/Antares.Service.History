@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using Lykke.Service.History.Core;
 using Xunit;
 
@@ -22,6 +23,22 @@ namespace Lykke.Service.History.Tests
             Assert.Equal(new byte[] { 253, 252, 254 }, Utils.IncrementByteArray(new byte[] { 253, 252, 254 }, 0));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => Utils.IncrementByteArray(new byte[] { 253, 252, 254 }, -10));
+        }
+
+        [Theory]
+        [InlineData("ConsoleInitiated-518d58a0-9f75-4c25-b1c6-85d3251fdfb5", "518d58a0-9f75-4c25-b1c6-85d3251fdfb5")]
+        [InlineData("618d58a0-9f75-4c25-b1c6-85d3251fdfb5", "618d58a0-9f75-4c25-b1c6-85d3251fdfb5")]
+        [InlineData("a0-9f75-4c25-b1c6-85d3251fdfb5", "")]
+        [InlineData("101215", "")]
+        [InlineData("618d58a0-9f75-4c25-b1c6-85d3251fdfb5-asdsadsadsad", "618d58a0-9f75-4c25-b1c6-85d3251fdfb5")]
+        public void GuidExtract_Test(string str, string expected)
+        {
+            var result = "";
+
+            if (Utils.TryExtractGuid(str, out var guid))
+                result = guid.ToString();
+
+            Assert.Equal(expected, result);
         }
     }
 }
