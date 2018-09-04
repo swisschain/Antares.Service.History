@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Lykke.Service.History.Core
 {
     public class Utils
     {
+        public static Regex GuidRegex = new Regex(@"[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?", RegexOptions.IgnoreCase);
+
         public static Guid IncrementGuid(Guid guid, int inc)
         {
             return new Guid(IncrementByteArray(guid.ToByteArray(), inc));
@@ -29,6 +32,21 @@ namespace Lykke.Service.History.Core
                 array[index--] = 0;
             }
             return array;
+        }
+
+        public static bool TryExtractGuid(string input, out Guid guid)
+        {
+            var match = GuidRegex.Match(input);
+
+            guid = Guid.Empty;
+
+            if (!match.Success || !Guid.TryParse(match.Value, out var id))
+            {
+                return false;
+            }
+
+            guid = id;
+            return true;
         }
     }
 }
