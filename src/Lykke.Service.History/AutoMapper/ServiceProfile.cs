@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using Lykke.Service.History.Contracts.History;
 using Lykke.Service.History.Core;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
+using TradeModel = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.TradeModel;
 
 namespace Lykke.Service.History.AutoMapper
 {
@@ -40,6 +42,21 @@ namespace Lykke.Service.History.AutoMapper
             CreateMap<OrderCancelledEvent, OrderEvent>()
                 .ForMember(x => x.Status, o => o.UseValue(OrderStatus.Cancelled))
                 .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)OrderStatus.Cancelled)));
+
+            CreateMap<BaseHistoryRecord, BaseHistoryModel>();
+
+            CreateMap<Cashin, CashinModel>()
+                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
+            CreateMap<Cashout, CashoutModel>()
+                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
+            CreateMap<Transfer, TransferModel>()
+                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
+            CreateMap<Trade, Contracts.History.TradeModel>()
+                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
+            CreateMap<OrderEvent, OrderEventModel>()
+                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
+
+            CreateMap<Order, OrderModel>();
         }
     }
 }

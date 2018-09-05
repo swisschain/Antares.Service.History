@@ -23,11 +23,17 @@
     <None Remove="Lykke.Service.History.Client.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.HttpClientGenerator" Version="2.1.2" />
+    <PackageReference Include="Lykke.HttpClientGenerator" Version="2.2.0" />
     <PackageReference Include="Lykke.SettingsReader" Version="4.0.1" />
     <PackageReference Include="Refit" Version="4.6.16" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\Lykke.Service.History.Contracts\Lykke.Service.History.Contracts.csproj" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Label="dotnet pack instructions">
+    <Content Include="$(OutputPath)Lykke.Service.History.Contracts.dll">
+      <Pack>true</Pack>
+      <PackagePath>lib/netstandard2.0</PackagePath>
+    </Content>
   </ItemGroup>
 </Project>

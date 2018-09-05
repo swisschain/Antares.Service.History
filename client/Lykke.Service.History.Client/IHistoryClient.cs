@@ -8,7 +8,14 @@ namespace Lykke.Service.History.Client
     [PublicAPI]
     public interface IHistoryClient
     {
-        /// <summary>Application Api interface</summary>
-        IHistoryApi Api { get; }
+        /// <summary>
+        /// History api interface (trade \ cashin \ cashout \ transfer \ order event)
+        /// </summary>
+        IHistoryApi HistoryApi { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IOrdersApi OrdersApi { get; }
     }
 }

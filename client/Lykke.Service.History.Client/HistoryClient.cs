@@ -2,6 +2,7 @@
 
 namespace Lykke.Service.History.Client
 {
+    /// <inheritdoc />
     /// <summary>
     ///     History API aggregating interface.
     /// </summary>
@@ -10,11 +11,15 @@ namespace Lykke.Service.History.Client
         /// <summary>C-tor</summary>
         public HistoryClient(IHttpClientGenerator httpClientGenerator)
         {
-            Api = httpClientGenerator.Generate<IHistoryApi>();
+            HistoryApi = httpClientGenerator.Generate<IHistoryApi>();
+            OrdersApi = httpClientGenerator.Generate<IOrdersApi>();
         }
         // Note: Add similar Api properties for each new service controller
 
-        /// <summary>Inerface to History Api.</summary>
-        public IHistoryApi Api { get; private set; }
+        /// <inheritdoc />
+        public IHistoryApi HistoryApi { get; }
+
+        /// <inheritdoc />
+        public IOrdersApi OrdersApi { get; }
     }
 }

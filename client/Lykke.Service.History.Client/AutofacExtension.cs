@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac;
 using JetBrains.Annotations;
 using Lykke.HttpClientGenerator;
 using Lykke.HttpClientGenerator.Infrastructure;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Refit;
 
 namespace Lykke.Service.History.Client
 {
@@ -18,7 +22,7 @@ namespace Lykke.Service.History.Client
         public static void RegisterHistoryClient(
             [NotNull] this ContainerBuilder builder,
             [NotNull] HistoryServiceClientSettings settings,
-            [CanBeNull] Func<HttpClientGeneratorBuilder, HttpClientGeneratorBuilder> builderConfigure)
+            [CanBeNull] Func<HttpClientGeneratorBuilder, HttpClientGeneratorBuilder> builderConfigure = null)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
@@ -32,6 +36,11 @@ namespace Lykke.Service.History.Client
                 .WithAdditionalCallsWrapper(new ExceptionHandlerCallsWrapper());
 
             clientBuilder = builderConfigure?.Invoke(clientBuilder) ?? clientBuilder.WithoutRetries();
+
+            clientBuilder.WithJsonSerializerSettings(new JsonSerializerSettings()
+            {
+                Converters = new List<JsonConverter>() { new HistoryJsonConverter() }
+            });
 
             builder.RegisterInstance(new HistoryClient(clientBuilder.Create()))
                 .As<IHistoryClient>()

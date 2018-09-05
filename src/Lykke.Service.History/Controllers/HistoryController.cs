@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using Lykke.Service.History.Contracts.History;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.History.Controllers
 {
@@ -18,8 +23,20 @@ namespace Lykke.Service.History.Controllers
             _historyRecordsRepository = historyRecordsRepository;
         }
 
+        /// <summary>
+        /// Get wallet history
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="type"></param>
+        /// <param name="assetId"></param>
+        /// <param name="assetPairId"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         [HttpGet("")]
-        public async Task<object> GetCommonHistory(
+        [SwaggerOperation("GetHistory")]
+        [ProducesResponseType(typeof(IReadOnlyList<BaseHistoryModel>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<BaseHistoryModel>> GetHistory(
             [FromQuery] Guid walletId,
             [FromQuery(Name = "type")] HistoryType[] type,
             [FromQuery] string assetId = null,
@@ -32,7 +49,7 @@ namespace Lykke.Service.History.Controllers
 
             var data = await _historyRecordsRepository.GetByWallet(walletId, type, offset, limit, assetPairId, assetId);
 
-            return data;
+            return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }
     }
 }
