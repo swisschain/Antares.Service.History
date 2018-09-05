@@ -30,12 +30,6 @@ namespace Lykke.Service.History.PostgresRepositories.Mappings
                 .ForPath(x => x.ContextObject.FeeSize, o => o.MapFrom(p => p.FeeSize))
                 .ForMember(x => x.Type, o => o.UseValue(HistoryType.CashOut));
 
-            CreateMap<HistoryEntity, Transfer>()
-                .ForMember(x => x.FeeSize, o => o.MapFrom(p => p.ContextObject.FeeSize))
-                .ReverseMap()
-                .ForPath(x => x.ContextObject.FeeSize, o => o.MapFrom(p => p.FeeSize))
-                .ForMember(x => x.Type, o => o.UseValue(HistoryType.Transfer));
-
             CreateMap<HistoryEntity, Trade>()
                 .ForMember(x => x.BaseAssetId, o => o.MapFrom(p => p.AssetId))
                 .ForMember(x => x.BaseVolume, o => o.MapFrom(p => p.Volume))

@@ -45,8 +45,6 @@ namespace Lykke.Service.History.Client
                         return new CashinModel();
                     case HistoryType.CashOut:
                         return new CashoutModel();
-                    case HistoryType.Transfer:
-                        return new TransferModel();
                     case HistoryType.Trade:
                         return new TradeModel();
                     case HistoryType.OrderEvent:

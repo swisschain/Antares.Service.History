@@ -50,7 +50,6 @@ namespace Lykke.Service.History.Tests.Init
             {
                 {HistoryType.CashIn, typeof(Cashin)},
                 {HistoryType.CashOut, typeof(Cashout)},
-                {HistoryType.Transfer, typeof(Transfer)},
                 {HistoryType.Trade, typeof(Trade)},
                 {HistoryType.OrderEvent, typeof(OrderEvent)}
             };

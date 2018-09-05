@@ -26,7 +26,7 @@ namespace Lykke.Service.History.AutoMapper
                 .ForMember(x => x.State, o => o.UseValue(HistoryState.Finished))
                 .ForMember(x => x.Volume, o => o.MapFrom(s => -Math.Abs(s.Volume)));
 
-            CreateMap<CashTransferProcessedEvent, IEnumerable<Transfer>>().ConvertUsing<TransferConverter>();
+            CreateMap<CashTransferProcessedEvent, IEnumerable<BaseHistoryRecord>>().ConvertUsing<CashTransferConverter>();
 
             CreateMap<TradeModel, Trade>();
 
@@ -48,8 +48,6 @@ namespace Lykke.Service.History.AutoMapper
             CreateMap<Cashin, CashinModel>()
                 .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
             CreateMap<Cashout, CashoutModel>()
-                .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
-            CreateMap<Transfer, TransferModel>()
                 .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
             CreateMap<Trade, Contracts.History.TradeModel>()
                 .IncludeBase<BaseHistoryRecord, BaseHistoryModel>();
