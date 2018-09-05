@@ -2,10 +2,10 @@
 {
     public enum HistoryType
     {
-        CashIn,
-        CashOut,
-        Transfer,
-        Trade,
-        OrderEvent
+        CashIn = 0,
+        CashOut = 1,
+        //Transfer = 2, reserved, but not used anymore
+        Trade = 3,
+        OrderEvent = 4
     }
 }

@@ -6,29 +6,31 @@ using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 
 namespace Lykke.Service.History.AutoMapper
 {
-    public class TransferConverter : ITypeConverter<CashTransferProcessedEvent, IEnumerable<Transfer>>
+    public class CashTransferConverter : ITypeConverter<CashTransferProcessedEvent, IEnumerable<BaseHistoryRecord>>
     {
-        public IEnumerable<Transfer> Convert(CashTransferProcessedEvent source, IEnumerable<Transfer> destination,
+        public IEnumerable<BaseHistoryRecord> Convert(CashTransferProcessedEvent source, IEnumerable<BaseHistoryRecord> destination,
             ResolutionContext context)
         {
-            yield return new Transfer
+            yield return new Cashout
             {
                 Id = source.OperationId,
                 WalletId = source.FromWalletId,
                 Volume = -Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
                 AssetId = source.AssetId,
-                FeeSize = source.FromWalletId == source.FeeSourceWalletId ? source.FeeSize : null
+                FeeSize = source.FromWalletId == source.FeeSourceWalletId ? source.FeeSize : null,
+                State = Core.Domain.Enums.HistoryState.Finished
             };
 
-            yield return new Transfer
+            yield return new Cashin
             {
                 Id = source.OperationId,
                 WalletId = source.ToWalletId,
                 Volume = Math.Abs(source.Volume),
                 Timestamp = source.Timestamp,
                 AssetId = source.AssetId,
-                FeeSize = source.ToWalletId == source.FeeSourceWalletId ? source.FeeSize : null
+                FeeSize = source.ToWalletId == source.FeeSourceWalletId ? source.FeeSize : null,
+                State = Core.Domain.Enums.HistoryState.Finished
             };
         }
     }

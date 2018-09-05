@@ -11,7 +11,6 @@ namespace Lykke.Service.History.Contracts.Enums
     {
         CashIn,
         CashOut,
-        Transfer,
         Trade,
         OrderEvent
     }

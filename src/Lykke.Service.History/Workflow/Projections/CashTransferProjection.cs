@@ -22,10 +22,10 @@ namespace Lykke.Service.History.Workflow.Projections
 
         public async Task<CommandHandlingResult> Handle(CashTransferProcessedEvent @event)
         {
-            var transfers = Mapper.Map<IEnumerable<Transfer>>(@event);
+            var cashInOuts = Mapper.Map<IEnumerable<BaseHistoryRecord>>(@event);
 
-            foreach (var transfer in transfers)
-                if (!await _historyRecordsRepository.TryInsertAsync(transfer))
+            foreach (var cashInOut in cashInOuts)
+                if (!await _historyRecordsRepository.TryInsertAsync(cashInOut))
                     _logger.Warning($"Skipped duplicated transfer record", context: new
                     {
                         id = @event.OperationId

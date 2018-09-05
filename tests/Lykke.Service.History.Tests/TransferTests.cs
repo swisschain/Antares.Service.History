@@ -61,11 +61,11 @@ namespace Lykke.Service.History.Tests
             Assert.NotNull(itemFrom);
             Assert.NotNull(itemTo);
 
-            Assert.True(itemFrom is Transfer);
-            Assert.True(itemTo is Transfer);
+            Assert.True(itemFrom is Cashout);
+            Assert.True(itemTo is Cashin);
 
-            var transferFrom = itemFrom as Transfer;
-            var transferTo = itemTo as Transfer;
+            var transferFrom = itemFrom as Cashout;
+            var transferTo = itemTo as Cashin;
 
             Assert.Equal(-Math.Abs(command.Volume), transferFrom.Volume);
             Assert.Equal(Math.Abs(command.Volume), transferTo.Volume);

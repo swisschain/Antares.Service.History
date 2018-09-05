@@ -19,8 +19,6 @@ namespace Lykke.Service.History.PostgresRepositories.Mappings
                     return Mapper.Map<Cashin>(entity);
                 case HistoryType.CashOut:
                     return Mapper.Map<Cashout>(entity);
-                case HistoryType.Transfer:
-                    return Mapper.Map<Transfer>(entity);
                 case HistoryType.Trade:
                     return Mapper.Map<Trade>(entity);
                 case HistoryType.OrderEvent:
@@ -41,8 +39,6 @@ namespace Lykke.Service.History.PostgresRepositories.Mappings
                     return Mapper.Map<HistoryEntity>(cashin);
                 case Cashout cashout:
                     return Mapper.Map<HistoryEntity>(cashout);
-                case Transfer transfer:
-                    return Mapper.Map<HistoryEntity>(transfer);
                 case Trade trade:
                     return Mapper.Map<HistoryEntity>(trade);
                 case OrderEvent orderEvent:
