@@ -37,6 +37,16 @@ namespace Lykke.Service.History.Tests.Init
             return false;
         }
 
+        public async Task<bool> TryDeleteAsync(Guid operationId, Guid walletId)
+        {
+            var item = await Get(operationId, walletId);
+            if (item == null)
+                return false;
+
+            _data.Remove(item);
+            return true;
+        }
+
         public Task<bool> UpdateBlockchainHashAsync(Guid id, string hash)
         {
             throw new NotImplementedException();
@@ -57,9 +67,9 @@ namespace Lykke.Service.History.Tests.Init
             var neededTypes = type.Select(x => typesMap[x]);
 
             return Task.FromResult(_data.Where(x => x.WalletId == walletId && neededTypes.Contains(x.GetType()))
-                .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic) x).AssetPairId == assetpairId)
-                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic) x).BaseAssetId == assetId ||
-                            ((dynamic) x).QuotingAssetId == assetId)
+                .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic)x).AssetPairId == assetpairId)
+                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic)x).BaseAssetId == assetId ||
+                            ((dynamic)x).QuotingAssetId == assetId)
                 .OrderByDescending(x => x.Timestamp)
                 .Skip(offset)
                 .Take(limit));

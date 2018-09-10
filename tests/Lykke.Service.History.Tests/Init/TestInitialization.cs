@@ -10,11 +10,15 @@ using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Service.History.AutoMapper;
+using Lykke.Service.History.Contracts.Cqrs;
+using Lykke.Service.History.Contracts.Cqrs.Commands;
+using Lykke.Service.History.Contracts.Cqrs.Events;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.Modules;
 using Lykke.Service.History.PostgresRepositories.Mappings;
 using Lykke.Service.History.Settings;
+using Lykke.Service.History.Workflow.Handlers;
 using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
@@ -58,6 +62,8 @@ namespace Lykke.Service.History.Tests.Init
             builder.RegisterType<CashInProjection>();
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
+
+            builder.RegisterType<ForwardWithdrawalCommandHandler>();
 
             builder.Register(ctx =>
                 {
@@ -136,7 +142,16 @@ namespace Lykke.Service.History.Tests.Init
                     .PublishingEvents(typeof(CashTransferProcessedEvent))
                     .With(defaultRoute)
                     .WithLoopback()
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name));
+                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name),
+
+                Register.BoundedContext(HistoryBoundedContext.Name)
+                    .ListeningCommands(typeof(CreateForwardCashinCommand), typeof(DeleteForwardCashinCommand))
+                    .On(defaultRoute)
+                    .WithLoopback()
+                    .WithCommandsHandler<ForwardWithdrawalCommandHandler>()
+                    .PublishingEvents(typeof(ForwardCashinCreatedEvent), typeof(ForwardCashinDeletedEvent))
+                    .With("events"));
+
         }
     }
 }

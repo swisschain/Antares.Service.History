@@ -26,6 +26,11 @@ insert into {Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, 
 ON CONFLICT (id, wallet_id) DO NOTHING;
 ";
 
+        private readonly string _deleteQuery = $@"
+delete from {Constants.HistoryTableName}
+where id = @Id and wallet_id = @WalletId
+";
+
         private readonly string _updateBlockchainHashQuery = $@"
 update {Constants.HistoryTableName}
 set context = jsonb_set(coalesce(context, '{{}}'), '{{{
@@ -79,6 +84,20 @@ where id = @Id
             using (var connection = await _connectionFactory.CreateNpgsqlConnection())
             {
                 var result = await connection.ExecuteAsync(_insertQuery, HistoryTypeMapper.Map(entity));
+
+                return result > 0;
+            }
+        }
+
+        public async Task<bool> TryDeleteAsync(Guid operationId, Guid walletId)
+        {
+            using (var connection = await _connectionFactory.CreateNpgsqlConnection())
+            {
+                var result = await connection.ExecuteAsync(_deleteQuery, new
+                {
+                    Id = operationId,
+                    WalletId = walletId
+                });
 
                 return result > 0;
             }
