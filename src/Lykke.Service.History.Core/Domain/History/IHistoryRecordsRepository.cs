@@ -13,6 +13,8 @@ namespace Lykke.Service.History.Core.Domain.History
 
         Task<bool> TryInsertAsync(BaseHistoryRecord entity);
 
+        Task<bool> TryDeleteAsync(Guid operationId, Guid walletId);
+
         Task<bool> UpdateBlockchainHashAsync(Guid id, string hash);
 
         Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset, int limit,

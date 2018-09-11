@@ -12,6 +12,9 @@ using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
 using Lykke.Sdk;
+using Lykke.Service.History.Contracts.Cqrs;
+using Lykke.Service.History.Contracts.Cqrs.Commands;
+using Lykke.Service.History.Contracts.Cqrs.Events;
 using Lykke.Service.History.Settings;
 using Lykke.Service.History.Workflow.ExecutionProcessing;
 using Lykke.Service.History.Workflow.Handlers;
@@ -63,6 +66,7 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<TransactionHashProjection>();
 
             builder.RegisterType<EthereumCommandHandler>();
+            builder.RegisterType<ForwardWithdrawalCommandHandler>();
 
             builder.Register(ctx =>
                 {
@@ -93,7 +97,6 @@ namespace Lykke.Service.History.Modules
             IMessagingEngine messagingEngine,
             ILogFactory logFactory)
         {
-            const string boundedContext = "history";
             const string defaultRoute = "self";
 
             var sagasMessagePackEndpointResolver = new RabbitMqConventionEndpointResolver(
@@ -113,7 +116,7 @@ namespace Lykke.Service.History.Modules
                 new DefaultEndpointProvider(),
                 true,
                 Register.DefaultEndpointResolver(sagasProtobufEndpointResolver),
-                Register.BoundedContext(boundedContext)
+                Register.BoundedContext(HistoryBoundedContext.Name)
                     .ListeningEvents(typeof(CashInProcessedEvent))
                     .From(PostProcessingBoundedContext.Name)
                     .On(defaultRoute)
@@ -145,9 +148,15 @@ namespace Lykke.Service.History.Modules
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
-                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name),
+                    .WithProjection(typeof(TransactionHashProjection), BlockchainCashoutProcessorBoundedContext.Name)
 
-                Register.BoundedContext("tx-handler.ethereum.commands")
+                    .ListeningCommands(typeof(CreateForwardCashinCommand), typeof(DeleteForwardCashinCommand))
+                    .On("commands")
+                    .WithCommandsHandler<ForwardWithdrawalCommandHandler>()
+                    .PublishingEvents(typeof(ForwardCashinCreatedEvent), typeof(ForwardCashinDeletedEvent))
+                    .With("events"),
+
+            Register.BoundedContext("tx-handler.ethereum.commands")
                     .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand),
                         typeof(ProcessHotWalletErc20EventCommand))
                     .On("history")
