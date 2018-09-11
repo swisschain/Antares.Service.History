@@ -28,10 +28,14 @@ namespace Lykke.Service.History.Workflow.Handlers
             var entity = Mapper.Map<Cashin>(command);
 
             if (!await _historyRecordsRepository.TryInsertAsync(entity))
+            {
                 _logger.Warning($"Skipped duplicated forward cashin record", context: new
                 {
                     id = command.OperationId
                 });
+
+                return CommandHandlingResult.Ok();
+            }
 
             eventPublisher.PublishEvent(new ForwardCashinCreatedEvent
             {
@@ -48,10 +52,14 @@ namespace Lykke.Service.History.Workflow.Handlers
         public async Task<CommandHandlingResult> Handle(DeleteForwardCashinCommand command, IEventPublisher eventPublisher)
         {
             if (!await _historyRecordsRepository.TryDeleteAsync(command.OperationId, command.WalletId))
+            {
                 _logger.Warning($"Forward cashin record was not found", context: new
                 {
                     id = command.OperationId
                 });
+
+                return CommandHandlingResult.Ok();
+            }
 
             eventPublisher.PublishEvent(new ForwardCashinDeletedEvent
             {
