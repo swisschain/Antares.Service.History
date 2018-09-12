@@ -12,7 +12,8 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
     public abstract class BaseBatchQueueReader<T> : IDisposable
     {
-        private const int ReconnectTimeoutSeconds = 30;
+        private readonly TimeSpan _reconnectTimeoutSeconds = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _timeoutBeforeStop = TimeSpan.FromSeconds(10);
 
         private readonly string _connectionString;
         private readonly int _prefetchCount;
@@ -51,7 +52,7 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
         {
             _cancellationTokenSource.Cancel();
 
-            Task.WaitAny(_queueReaderTask, Task.Delay(10000));
+            Task.WaitAny(_queueReaderTask, Task.Delay(_timeoutBeforeStop));
         }
 
         protected abstract string ExchangeName { get; }
@@ -80,8 +81,8 @@ namespace Lykke.Service.History.Workflow.ExecutionProcessing
                 {
                     if (!_cancellationTokenSource.IsCancellationRequested)
                     {
-                        Log.Info($"Connection will be reconnected in {ReconnectTimeoutSeconds} seconds");
-                        await Task.Delay(ReconnectTimeoutSeconds * 1000);
+                        Log.Info($"Connection will be reconnected in {_reconnectTimeoutSeconds} seconds");
+                        await Task.Delay(_reconnectTimeoutSeconds);
                     }
                 }
             }
