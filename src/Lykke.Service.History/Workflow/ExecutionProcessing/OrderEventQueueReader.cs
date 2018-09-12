@@ -16,181 +16,69 @@ using RabbitMQ.Client.Events;
 
 namespace Lykke.Service.History.Workflow.ExecutionProcessing
 {
-    public class OrderEventQueueReader : IDisposable
+    public class OrderEventQueueReader : BaseBatchQueueReader<OrderEvent>
     {
-        private readonly string _connectionString;
-        private readonly IHealthNotifier _healthNotifier;
-        private readonly int _prefetchCount;
-        private readonly int _batchCount;
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
-        private readonly ILog _log;
-        private CancellationTokenSource _cancellationTokenSource;
-        private Task _dbWriterTask;
-
-        private ConcurrentQueue<CustomQueueItem<OrderEvent>> _queue;
-        private Task _queueReaderTask;
-
 
         public OrderEventQueueReader(
             ILogFactory logFactory,
             string connectionString,
             IHistoryRecordsRepository historyRecordsRepository,
-            IHealthNotifier healthNotifier,
             int prefetchCount,
             int batchCount)
+            : base(logFactory, connectionString, prefetchCount, batchCount)
         {
-            _connectionString = connectionString;
             _historyRecordsRepository = historyRecordsRepository;
-            _healthNotifier = healthNotifier;
-            _prefetchCount = prefetchCount;
-            _batchCount = batchCount;
-            _log = logFactory.CreateLog(this);
         }
 
-        public void Dispose()
-        {
-            Stop();
-        }
+        protected override string ExchangeName => $"lykke.{PostProcessingBoundedContext.Name}.events.exchange";
 
-        public void Start()
+        protected override string QueueName => $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.order-event-reader";
+
+        protected override string[] RoutingKeys => new[] { nameof(OrderPlacedEvent), nameof(OrderCancelledEvent) };
+
+        protected override EventHandler<BasicDeliverEventArgs> CreateOnMessageReceivedEventHandler(IModel channel)
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            _queue = new ConcurrentQueue<CustomQueueItem<OrderEvent>>();
-            _dbWriterTask = StartDbWriter();
-            _queueReaderTask = StartQueueReader().ContinueWith(x =>
+            var orderPlacedDeserializer = new ProtobufMessageDeserializer<OrderPlacedEvent>();
+            var orderCancelledDeserializer = new ProtobufMessageDeserializer<OrderCancelledEvent>();
+
+            void OnMessageReceived(object o, BasicDeliverEventArgs basicDeliverEventArgs)
             {
-                if (x.IsFaulted)
-                {
-                    _healthNotifier.Notify("Order event queue reader unexpectedly stopped");
-                    _log.Error(x.Exception);
-                }
-            });
-        }
-
-        public void Stop()
-        {
-            _cancellationTokenSource.Cancel();
-
-            Task.WaitAny(_queueReaderTask, Task.Delay(10000));
-        }
-
-        private async Task StartQueueReader()
-        {
-            var exchangeName = $"lykke.{PostProcessingBoundedContext.Name}.events.exchange";
-            var queueName = $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.order-event-reader";
-
-            var factory = new ConnectionFactory
-            {
-                Uri = _connectionString
-            };
-
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                channel.BasicQos(0, (ushort)_prefetchCount, false);
-
-                channel.QueueDeclare(queueName, true, false, false);
-
-                channel.QueueBind(queueName, exchangeName, nameof(OrderPlacedEvent));
-                channel.QueueBind(queueName, exchangeName, nameof(OrderCancelledEvent));
-
-                var consumer = new EventingBasicConsumer(channel);
-
-                var orderPlacedDeserializer = new ProtobufMessageDeserializer<OrderPlacedEvent>();
-                var orderCancelledDeserializer = new ProtobufMessageDeserializer<OrderCancelledEvent>();
-
-                consumer.Received += (o, basicDeliverEventArgs) =>
-                {
-                    try
-                    {
-                        switch (basicDeliverEventArgs.RoutingKey)
-                        {
-                            case nameof(OrderPlacedEvent):
-                                _queue.Enqueue(new CustomQueueItem<OrderEvent>(
-                                    Mapper.Map<OrderEvent>(
-                                        orderPlacedDeserializer.Deserialize(basicDeliverEventArgs.Body)),
-                                    basicDeliverEventArgs.DeliveryTag, channel));
-                                break;
-                            case nameof(OrderCancelledEvent):
-                                _queue.Enqueue(new CustomQueueItem<OrderEvent>(
-                                    Mapper.Map<OrderEvent>(
-                                        orderCancelledDeserializer.Deserialize(basicDeliverEventArgs.Body)),
-                                    basicDeliverEventArgs.DeliveryTag, channel));
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException(basicDeliverEventArgs.RoutingKey);
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        _log.Error(e);
-
-                        channel.BasicReject(basicDeliverEventArgs.DeliveryTag, false);
-                    }
-                };
-
-                var tag = channel.BasicConsume(queueName, false, consumer);
-
-                while (!_cancellationTokenSource.IsCancellationRequested)
-                    await Task.Delay(100);
-
-                await _dbWriterTask;
-
-                channel.BasicCancel(tag);
-                connection.Close();
-            }
-        }
-
-        private async Task StartDbWriter()
-        {
-            while (!_cancellationTokenSource.IsCancellationRequested || _queue.Count > 0)
-            {
-                var isFullBatch = false;
                 try
                 {
-                    var exceptionThrowed = false;
-                    var list = new List<CustomQueueItem<OrderEvent>>();
-                    try
+                    switch (basicDeliverEventArgs.RoutingKey)
                     {
-                        for (var i = 0; i < _batchCount; i++)
-                            if (_queue.TryDequeue(out var customQueueItem))
-                                list.Add(customQueueItem);
-                            else
-                                break;
-
-                        if (list.Count > 0)
-                        {
-                            isFullBatch = list.Count == _batchCount;
-
-                            await _historyRecordsRepository.InsertBulkAsync(list.Select(x => x.Value));
-                        }
+                        case nameof(OrderPlacedEvent):
+                            Queue.Enqueue(new CustomQueueItem<OrderEvent>(
+                                Mapper.Map<OrderEvent>(
+                                    orderPlacedDeserializer.Deserialize(basicDeliverEventArgs.Body)),
+                                basicDeliverEventArgs.DeliveryTag, channel));
+                            break;
+                        case nameof(OrderCancelledEvent):
+                            Queue.Enqueue(new CustomQueueItem<OrderEvent>(
+                                Mapper.Map<OrderEvent>(
+                                    orderCancelledDeserializer.Deserialize(basicDeliverEventArgs.Body)),
+                                basicDeliverEventArgs.DeliveryTag, channel));
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(basicDeliverEventArgs.RoutingKey);
                     }
-                    catch (Exception e)
-                    {
-                        exceptionThrowed = true;
 
-                        _log.Error(e);
-
-                        foreach (var item in list)
-                            item.Reject();
-                    }
-                    finally
-                    {
-                        if (!exceptionThrowed)
-                            foreach (var item in list)
-                                item.Accept();
-                    }
                 }
                 catch (Exception e)
                 {
-                    _log.Error(e);
-                }
-                finally
-                {
-                    await Task.Delay(isFullBatch ? 1 : 1000);
+                    Log.Error(e);
+
+                    channel.BasicReject(basicDeliverEventArgs.DeliveryTag, false);
                 }
             }
+
+            return OnMessageReceived;
+        }
+
+        protected override Task ProcessBatch(IList<CustomQueueItem<OrderEvent>> batch)
+        {
+            return _historyRecordsRepository.InsertBulkAsync(batch.Select(x => x.Value));
         }
     }
 }
