@@ -120,13 +120,13 @@ ON CONFLICT (id) DO UPDATE
             }
         }
 
-        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses,
-            int offset, int limit)
+        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset, int limit)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
                 var query = context.Orders
                     .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
+                    .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
                     .OrderByDescending(x => x.CreateDt)
                     .Skip(offset)
                     .Take(limit);

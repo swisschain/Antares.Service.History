@@ -54,11 +54,11 @@ namespace Lykke.Service.History.Tests.Init
             return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id));
         }
 
-        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset,
-            int limit)
+        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset, int limit)
         {
             return Task.FromResult(_orders
                 .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
+                .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
                 .Skip(offset).Take(limit));
         }
     }

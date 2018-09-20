@@ -28,20 +28,22 @@ namespace Lykke.Service.History.Client
         /// <param name="walletId"></param>
         /// <param name="status"></param>
         /// <param name="type"></param>
+        /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
         [Get("/api/orders/list")]
-        Task<IEnumerable<OrderModel>> GetOrdersByWalletAsync(Guid walletId, [Query(CollectionFormat.Multi)] OrderStatus[] status = null, [Query(CollectionFormat.Multi)] OrderType[] type = null, int offset = 0, int limit = 100);
+        Task<IEnumerable<OrderModel>> GetOrdersByWalletAsync(Guid walletId, [Query(CollectionFormat.Multi)] OrderStatus[] status = null, [Query(CollectionFormat.Multi)] OrderType[] type = null, int offset = 0, int limit = 100, string assetPairId = null);
 
         /// <summary>
         /// Get active orders by wallet id
         /// </summary>
         /// <param name="walletId"></param>
+        /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
         [Get("/api/orders/active")]
-        Task<IEnumerable<OrderModel>> GetActiveOrdersByWalletAsync(Guid walletId, int offset = 0, int limit = 100);
+        Task<IEnumerable<OrderModel>> GetActiveOrdersByWalletAsync(Guid walletId, int offset = 0, int limit = 100, string assetPairId = null);
     }
 }

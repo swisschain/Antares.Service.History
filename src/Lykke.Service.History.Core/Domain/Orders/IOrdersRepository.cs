@@ -13,7 +13,7 @@ namespace Lykke.Service.History.Core.Domain.Orders
 
         Task<Order> Get(Guid id);
 
-        Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, int offset,
+        Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset,
             int limit);
     }
 }
