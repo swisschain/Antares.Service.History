@@ -51,5 +51,21 @@ namespace Lykke.Service.History.Controllers
 
             return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }
+        
+        /// <summary>
+        /// Get wallet history
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("{walletId}/{id}")]
+        [SwaggerOperation("GetHistoryItem")]
+        [ProducesResponseType(typeof(BaseHistoryModel), (int)HttpStatusCode.OK)]
+        public async Task<BaseHistoryModel> GetHistory(Guid walletId, Guid id)
+        {
+            var data = await _historyRecordsRepository.Get(id, walletId);
+
+            return Mapper.Map<BaseHistoryModel>(data);
+        }
     }
 }

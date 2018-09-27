@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common;
 using Lykke.Service.History.Core.Domain.Enums;
+using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Newtonsoft.Json;
 
@@ -60,6 +61,11 @@ namespace Lykke.Service.History.Tests.Init
                 .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
                 .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
                 .Skip(offset).Take(limit));
+        }
+
+        public Task<IEnumerable<Trade>> GetTradesByOrderId(Guid walletId, Guid id)
+        {
+            return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id)?.Trades.AsEnumerable());
         }
     }
 }

@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
 using Lykke.Service.History.Core.Domain.Enums;
+using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.PostgresRepositories.Entities;
+using Lykke.Service.History.PostgresRepositories.JsonbQuery;
 using Lykke.Service.History.PostgresRepositories.Mappings;
 using Microsoft.EntityFrameworkCore;
 using PostgreSQLCopyHelper;
@@ -132,6 +134,19 @@ ON CONFLICT (id) DO UPDATE
                     .Take(limit);
 
                 return (await query.ToListAsync()).Select(Mapper.Map<Order>);
+            }
+        }
+
+        public async Task<IEnumerable<Trade>> GetTradesByOrderId(Guid walletId, Guid id)
+        {
+            using (var context = _connectionFactory.CreateDataContext())
+            {
+                var query = context.History
+                    .Where(x => x.WalletId == walletId &&  x.Type == HistoryType.Trade)
+                    .Where(x => x.Context.JsonbPath<string>(nameof(HistoryEntityContext.OrderId)) == id.ToString())
+                    .OrderByDescending(x => x.Timestamp);
+                
+                return Mapper.Map<IEnumerable<Trade>>(await query.ToListAsync());
             }
         }
     }
