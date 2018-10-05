@@ -14,6 +14,8 @@ namespace Lykke.Service.History.Core.Domain.History
 
         public decimal? FeeSize { get; set; }
 
+        public HistoryOperationType OperationType { get; set; }
+
         public override HistoryType Type => HistoryType.CashOut;
     }
 }

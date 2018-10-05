@@ -18,6 +18,8 @@ namespace Lykke.Service.History.PostgresRepositories
 
         internal virtual DbSet<OrderEntity> Orders { get; set; }
 
+        internal virtual DbSet<OperationEntity> Operations { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ReplaceService<ICompositeMethodCallTranslator, CustomSqlMethodCallTranslator>();

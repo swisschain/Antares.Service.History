@@ -19,6 +19,8 @@ using Lykke.Service.History.Settings;
 using Lykke.Service.History.Workflow.ExecutionProcessing;
 using Lykke.Service.History.Workflow.Handlers;
 using Lykke.Service.History.Workflow.Projections;
+using Lykke.Service.Operations.Contracts;
+using Lykke.Service.Operations.Contracts.Events;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader;
@@ -64,6 +66,7 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<CashOutProjection>();
             builder.RegisterType<CashTransferProjection>();
             builder.RegisterType<TransactionHashProjection>();
+            builder.RegisterType<OperationsProjection>();
 
             builder.RegisterType<EthereumCommandHandler>();
             builder.RegisterType<ForwardWithdrawalCommandHandler>();
@@ -154,7 +157,13 @@ namespace Lykke.Service.History.Modules
                     .On("commands")
                     .WithCommandsHandler<ForwardWithdrawalCommandHandler>()
                     .PublishingEvents(typeof(ForwardCashinCreatedEvent), typeof(ForwardCashinDeletedEvent))
-                    .With("events"),
+                    .With("events")
+                    
+                    .ListeningEvents(typeof(OperationCreatedEvent), typeof(OperationCompletedEvent))
+                    .From(OperationsBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(OperationsProjection), OperationsBoundedContext.Name),
 
             Register.BoundedContext("tx-handler.ethereum.commands")
                     .ListeningCommands(typeof(SaveEthInHistoryCommand), typeof(ProcessEthCoinEventCommand),

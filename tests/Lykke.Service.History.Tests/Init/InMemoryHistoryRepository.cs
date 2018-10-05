@@ -52,6 +52,16 @@ namespace Lykke.Service.History.Tests.Init
             throw new NotImplementedException();
         }
 
+        public Task<bool> UpdateOperationTypeAsync(Guid id, HistoryOperationType type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateStateAsync(Guid id, HistoryState state)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
             int limit, string assetpairId = null,
             string assetId = null)

@@ -32,6 +32,7 @@
     <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.1.0" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.2.0" />
     <PackageReference Include="Lykke.Sdk" Version="5.3.0" />
+    <PackageReference Include="Lykke.Service.Operations.Contracts" Version="1.4.0" />
     <PackageReference Include="Lykke.Service.PostProcessing.Contracts" Version="1.7.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />

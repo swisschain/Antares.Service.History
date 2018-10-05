@@ -58,5 +58,10 @@ namespace Lykke.Service.History.PostgresRepositories.Entities
         ///     Order id
         /// </summary>
         public string OrderId { get; set; }
+
+        /// <summary>
+        /// Underlying operation type
+        /// </summary>
+        public HistoryOperationType OperationType { get; set; }
     }
 }

@@ -14,6 +14,8 @@ namespace Lykke.Service.History.Contracts.History
 
         public HistoryState State { get; set; }
 
+        public HistoryOperationType OperationType { get; set; }
+
         public decimal? FeeSize { get; set; }
     }
 }

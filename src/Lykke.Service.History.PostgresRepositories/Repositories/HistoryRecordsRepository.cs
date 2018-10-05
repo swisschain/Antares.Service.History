@@ -39,6 +39,22 @@ set context = jsonb_set(coalesce(context, '{{}}'), '{{{
 where id = @Id
 ";
 
+        private readonly string _updateOperationTypeQuery = $@"
+update {Constants.HistoryTableName}
+set context = jsonb_set(coalesce(context, '{{}}'), '{{{
+                nameof(HistoryEntityContext.OperationType)
+            }}}', to_jsonb(@OperationType::integer))
+where id = @Id and (type = 0 or type = 1)
+";
+
+        private readonly string _updateHistoryStateQuery = $@"
+update {Constants.HistoryTableName}
+set context = jsonb_set(coalesce(context, '{{}}'), '{{{
+                nameof(HistoryEntityContext.State)
+            }}}', to_jsonb(@State::integer))
+where id = @Id and (type = 0 or type = 1)
+";
+
         static HistoryRecordsRepository()
         {
             BulkMapping = HistoryEntityBulkMapping.Generate();
@@ -111,6 +127,34 @@ where id = @Id
                 {
                     Id = id,
                     Hash = hash
+                });
+
+                return result > 0;
+            }
+        }
+
+        public async Task<bool> UpdateOperationTypeAsync(Guid id, HistoryOperationType type)
+        {
+            using (var connection = await _connectionFactory.CreateNpgsqlConnection())
+            {
+                var result = await connection.ExecuteAsync(_updateOperationTypeQuery, new
+                {
+                    Id = id,
+                    OperationType = (int)type
+                });
+
+                return result > 0;
+            }
+        }
+
+        public async Task<bool> UpdateStateAsync(Guid id, HistoryState state)
+        {
+            using (var connection = await _connectionFactory.CreateNpgsqlConnection())
+            {
+                var result = await connection.ExecuteAsync(_updateHistoryStateQuery, new
+                {
+                    Id = id,
+                    State = (int)state
                 });
 
                 return result > 0;

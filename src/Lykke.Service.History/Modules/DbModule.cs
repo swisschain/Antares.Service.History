@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Lykke.Service.History.Core.Domain.History;
+using Lykke.Service.History.Core.Domain.Operations;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.PostgresRepositories;
 using Lykke.Service.History.PostgresRepositories.Repositories;
@@ -25,6 +26,8 @@ namespace Lykke.Service.History.Modules
             builder.RegisterType<HistoryRecordsRepository>().As<IHistoryRecordsRepository>();
 
             builder.RegisterType<OrdersRepository>().As<IOrdersRepository>();
+
+            builder.RegisterType<OperationsRepository>().As<IOperationsRepository>();
         }
     }
 }

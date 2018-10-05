@@ -7,5 +7,7 @@
         public const string OrdersTableName = "orders";
 
         public const string TempOrdersTableName = "temporders";
+
+        public const string OperationsTableName = "operations";
     }
 }
