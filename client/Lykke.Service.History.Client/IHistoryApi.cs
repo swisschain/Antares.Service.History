@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Lykke.Service.History.Contracts;
 using Lykke.Service.History.Contracts.Enums;
 using Lykke.Service.History.Contracts.History;
 using Refit;
@@ -32,5 +31,14 @@ namespace Lykke.Service.History.Client
             string assetPairId = null,
             int offset = 0,
             int limit = 100);
+        
+        /// <summary>
+        /// Get history item by id
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Get("/api/history/{walletId}/{id}")]
+        Task<BaseHistoryModel> GetHistoryItemByIdAsync(Guid walletId, Guid id);
     }
 }
