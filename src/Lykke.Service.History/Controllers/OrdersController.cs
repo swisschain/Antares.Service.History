@@ -42,6 +42,7 @@ namespace Lykke.Service.History.Controllers
         /// <param name="walletId"></param>
         /// <param name="status"></param>
         /// <param name="type"></param>
+        /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
@@ -52,6 +53,7 @@ namespace Lykke.Service.History.Controllers
             [FromQuery] Guid walletId,
             [FromQuery(Name = "status")] OrderStatus[] status,
             [FromQuery(Name = "type")] OrderType[] type,
+            string assetPairId = null,
             int offset = 0,
             int limit = 100)
         {
@@ -61,7 +63,7 @@ namespace Lykke.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
 
-            var data = await _ordersRepository.GetOrders(walletId, type, status, offset, limit);
+            var data = await _ordersRepository.GetOrders(walletId, type, status, assetPairId, offset, limit);
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
         }
@@ -70,6 +72,7 @@ namespace Lykke.Service.History.Controllers
         /// Get active orders by wallet id
         /// </summary>
         /// <param name="walletId"></param>
+        /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
@@ -78,12 +81,14 @@ namespace Lykke.Service.History.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<OrderModel>), (int)HttpStatusCode.OK)]
         public async Task<IReadOnlyList<OrderModel>> GetActiveOrders(
             [FromQuery] Guid walletId,
+            string assetPairId = null,
             int offset = 0,
             int limit = 100)
         {
             var data = await _ordersRepository.GetOrders(walletId,
                 new[] { OrderType.Limit, OrderType.StopLimit },
-                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending },
+                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending }, 
+                assetPairId,
                 offset, limit);
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
