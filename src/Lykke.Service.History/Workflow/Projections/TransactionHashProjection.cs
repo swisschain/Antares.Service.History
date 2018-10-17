@@ -87,5 +87,31 @@ namespace Lykke.Service.History.Workflow.Projections
 
             return CommandHandlingResult.Ok();
         }
+
+        /// <summary>
+        ///     BIL batched cashout event
+        /// </summary>
+        /// <param name="event"></param>
+        /// <returns></returns>
+        public async Task<CommandHandlingResult> Handle(
+            Job.BlockchainCashoutProcessor.Contract.Events.CashoutsBatchCompletedEvent @event)
+        {
+            if (@event.Cashouts == null || @event.Cashouts.Length == 0)
+            {
+                _logger.Warning($"BIL batched cashout event, BatchId {@event.BatchId}", context: @event);
+            }
+
+            foreach (var cashout in @event.Cashouts)
+            {
+                if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(cashout.OperationId, @event.TransactionHash))
+                    _logger.Warning($"Transaction hash was not set, BIL cashout", context: new
+                    {
+                        id = cashout.OperationId,
+                        hash = @event.TransactionHash
+                    });
+            }
+
+            return CommandHandlingResult.Ok();
+        }
     }
 }
