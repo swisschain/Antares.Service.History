@@ -96,7 +96,7 @@ namespace Lykke.Service.History.Controllers
             [FromQuery] int limit = 100,
             [FromQuery] DateTime? fromDt = null,
             [FromQuery] DateTime? toDt = null,
-            [FromQuery(Name = "type")] TradeType? tradeType = null)
+            [FromQuery(Name = "tradeType")] TradeType? tradeType = null)
         {
             bool? onlyBuyTrades = null;
             if (tradeType == TradeType.Buy)
