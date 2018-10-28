@@ -99,6 +99,8 @@ namespace Lykke.Service.History.Workflow.Projections
             if (@event.Cashouts == null || @event.Cashouts.Length == 0)
             {
                 _logger.Warning($"BIL batched cashout event, BatchId {@event.BatchId}", context: @event);
+
+                return CommandHandlingResult.Ok();
             }
 
             foreach (var cashout in @event.Cashouts)
