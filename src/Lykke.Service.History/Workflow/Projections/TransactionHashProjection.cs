@@ -11,6 +11,7 @@ namespace Lykke.Service.History.Workflow.Projections
     {
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
         private readonly ILog _logger;
+        private readonly string _crossClientTransactionHashSubstituition = "0x";
 
         public TransactionHashProjection(IHistoryRecordsRepository historyRecordsRepository, ILogFactory logFactory)
         {
@@ -112,6 +113,33 @@ namespace Lykke.Service.History.Workflow.Projections
                         hash = @event.TransactionHash
                     });
             }
+
+            return CommandHandlingResult.Ok();
+        }
+
+        /// <summary>
+        ///     BIL cross client cashout event completed
+        /// </summary>
+        /// <param name="event"></param>
+        /// <returns></returns>
+        public async Task<CommandHandlingResult> Handle(
+            Job.BlockchainCashoutProcessor.Contract.Events.CrossClientCashoutCompletedEvent @event)
+        {
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId,
+                _crossClientTransactionHashSubstituition))
+                _logger.Warning($"Transaction hash was not set, cross client cashout", context: new
+                {
+                    id = @event.OperationId,
+                    hash = _crossClientTransactionHashSubstituition
+                });
+
+            if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.CashinOperationId,
+                _crossClientTransactionHashSubstituition))
+                _logger.Warning($"Transaction hash was not set, cross client cashin", context: new
+                {
+                    id = @event.CashinOperationId,
+                    hash = _crossClientTransactionHashSubstituition
+                });
 
             return CommandHandlingResult.Ok();
         }

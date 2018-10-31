@@ -146,6 +146,7 @@ namespace Lykke.Service.History.Modules
 
                     .ListeningEvents(
                         typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent),
+                        typeof(Job.BlockchainCashoutProcessor.Contract.Events.CrossClientCashoutCompletedEvent),
                         typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutsBatchCompletedEvent))
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
