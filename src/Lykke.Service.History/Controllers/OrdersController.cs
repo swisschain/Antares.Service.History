@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Lykke.Service.History.Contracts.History;
 using Lykke.Service.History.Contracts.Orders;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
@@ -93,21 +92,6 @@ namespace Lykke.Service.History.Controllers
                 offset, limit);
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
-        }
-        
-        /// <summary>
-        /// Get order trades
-        /// </summary>
-        /// <param name="walletId"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpGet("{walletId}/{id}/trades")]
-        [SwaggerOperation("GetOrderTrades")]
-        [ProducesResponseType(typeof(IReadOnlyList<TradeModel>), (int)HttpStatusCode.OK)]
-        public async Task<IReadOnlyList<TradeModel>> GetTradesByOrderId(Guid walletId, Guid id)
-        {
-            var trades = await _ordersRepository.GetTradesByOrderId(walletId, id);
-            return Mapper.Map<IReadOnlyList<TradeModel>>(trades);
         }
     }
 }

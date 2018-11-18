@@ -1,49 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Service.History.Contracts.Enums;
 using Lykke.Service.History.Contracts.History;
-using Microsoft.AspNetCore.Mvc;
 using Refit;
 
 namespace Lykke.Service.History.Client
 {
     /// <summary>
-    ///     History client API interface.
+    ///     Orders client API interface.
     /// </summary>
     [PublicAPI]
-    public interface IHistoryApi
+    public interface ITradesApi
     {
         /// <summary>
-        /// Get history by wallet id
+        /// Get trades by wallet id
         /// </summary>
         /// <param name="walletId"></param>
-        /// <param name="type"></param>
         /// <param name="assetId"></param>
         /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
+        /// <param name="tradeType"></param>
         /// <returns></returns>
-        [Get("/api/history")]
-        Task<IEnumerable<BaseHistoryModel>> GetHistoryByWalletAsync(Guid walletId,
-            [Query(CollectionFormat.Multi)] HistoryType[] type = null,
+        [Get("/api/trades")]
+        Task<IEnumerable<TradeModel>> GetTradesByWalletAsync(
+            Guid walletId,
             string assetId = null,
             string assetPairId = null,
             int offset = 0,
             int limit = 100,
             DateTime? from = null,
-            DateTime? to = null);
-
+            DateTime? to = null,
+            TradeType? tradeType = null);
+        
         /// <summary>
-        /// Get history item by id
+        /// Get order trades
         /// </summary>
         /// <param name="walletId"></param>
-        /// <param name="id"></param>
+        /// <param name="orderId"></param>
         /// <returns></returns>
-        [Get("/api/history/{walletId}/{id}")]
-        Task<BaseHistoryModel> GetHistoryItemByIdAsync(Guid walletId, Guid id);
+        [Get("/api/trades/order/{walletId}/{orderId}")]
+        Task<IEnumerable<TradeModel>> GetTradesByOrderIdAsync(Guid walletId, Guid orderId);
     }
 }
