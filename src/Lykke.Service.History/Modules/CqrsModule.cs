@@ -144,7 +144,10 @@ namespace Lykke.Service.History.Modules
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
 
-                    .ListeningEvents(typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent))
+                    .ListeningEvents(
+                        typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent),
+                        typeof(Job.BlockchainCashoutProcessor.Contract.Events.CrossClientCashoutCompletedEvent),
+                        typeof(Job.BlockchainCashoutProcessor.Contract.Events.CashoutsBatchCompletedEvent))
                     .From(BlockchainCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
