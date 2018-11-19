@@ -5,10 +5,10 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Lykke.Service.History.Contracts.History;
-using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using HistoryType = Lykke.Service.History.Core.Domain.Enums.HistoryType;
 
 namespace Lykke.Service.History.Controllers
 {
@@ -32,6 +32,8 @@ namespace Lykke.Service.History.Controllers
         /// <param name="assetPairId"></param>
         /// <param name="offset"></param>
         /// <param name="limit"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
         /// <returns></returns>
         [HttpGet("")]
         [SwaggerOperation("GetHistory")]
@@ -42,12 +44,14 @@ namespace Lykke.Service.History.Controllers
             [FromQuery] string assetId = null,
             [FromQuery] string assetPairId = null,
             [FromQuery] int offset = 0,
-            [FromQuery] int limit = 100)
+            [FromQuery] int limit = 100,
+            [FromQuery] DateTime? from = null,
+            [FromQuery] DateTime? to = null)
         {
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(HistoryType)).Cast<HistoryType>().ToArray();
 
-            var data = await _historyRecordsRepository.GetByWallet(walletId, type, offset, limit, assetPairId, assetId);
+            var data = await _historyRecordsRepository.GetByWallet(walletId, type, offset, limit, assetPairId, assetId, from, to);
 
             return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }

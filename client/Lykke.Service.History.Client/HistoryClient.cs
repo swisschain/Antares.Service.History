@@ -13,6 +13,7 @@ namespace Lykke.Service.History.Client
         {
             HistoryApi = httpClientGenerator.Generate<IHistoryApi>();
             OrdersApi = httpClientGenerator.Generate<IOrdersApi>();
+            TradesApi = httpClientGenerator.Generate<ITradesApi>();
         }
         // Note: Add similar Api properties for each new service controller
 
@@ -21,5 +22,8 @@ namespace Lykke.Service.History.Client
 
         /// <inheritdoc />
         public IOrdersApi OrdersApi { get; }
+        
+        /// <inheritdoc />
+        public ITradesApi TradesApi { get; }
     }
 }

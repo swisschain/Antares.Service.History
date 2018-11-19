@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Dapper;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
@@ -118,7 +119,7 @@ where id = @Id
         }
 
         public async Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
-            int limit, string assetPairId = null, string assetId = null)
+            int limit, string assetPairId = null, string assetId = null, DateTime? fromDt = null, DateTime? toDt = null)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -127,11 +128,33 @@ where id = @Id
                     .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
                     .Where(x => string.IsNullOrWhiteSpace(assetId) || x.AssetId == assetId ||
                                 (x.Type == HistoryType.Trade && x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeQuotingAssetId)) == assetId))
+                    .Where(x => fromDt == null || (x.Timestamp > fromDt.Value))
+                    .Where(x => toDt == null || (x.Timestamp <= toDt.Value))
                     .OrderByDescending(x => x.Timestamp)
                     .Skip(offset)
                     .Take(limit);
 
                 return (await query.ToListAsync()).Select(HistoryTypeMapper.Map);
+            }
+        }
+
+        public async Task<IEnumerable<Trade>> GetTradesByWallet(Guid walletId, int offset,
+            int limit, string assetPairId = null, string assetId = null, DateTime? fromDt = null, DateTime? toDt = null, bool? buyTrades = null)
+        {
+            using (var context = _connectionFactory.CreateDataContext())
+            {
+                var query = context.History
+                    .Where(x => x.WalletId == walletId && x.Type == HistoryType.Trade)
+                    .Where(x => buyTrades == null || (buyTrades == true && x.Volume > 0) || (buyTrades == false && x.Volume < 0))
+                    .Where(x => string.IsNullOrWhiteSpace(assetPairId) || x.AssetPairId == assetPairId)
+                    .Where(x => string.IsNullOrWhiteSpace(assetId) || x.AssetId == assetId || x.Context.JsonbPath<string>(nameof(HistoryEntityContext.TradeQuotingAssetId)) == assetId)
+                    .Where(x => fromDt == null || (x.Timestamp > fromDt.Value))
+                    .Where(x => toDt == null || (x.Timestamp <= toDt.Value))
+                    .OrderByDescending(x => x.Timestamp)
+                    .Skip(offset)
+                    .Take(limit);
+
+                return Mapper.Map<IEnumerable<Trade>>(await query.ToListAsync());
             }
         }
     }

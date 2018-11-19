@@ -46,14 +46,5 @@ namespace Lykke.Service.History.Client
         /// <returns></returns>
         [Get("/api/orders/active")]
         Task<IEnumerable<OrderModel>> GetActiveOrdersByWalletAsync(Guid walletId, int offset = 0, int limit = 100, string assetPairId = null);
-        
-        /// <summary>
-        /// Get order trades
-        /// </summary>
-        /// <param name="walletId"></param>
-        /// <param name="orderId"></param>
-        /// <returns></returns>
-        [Get("/api/orders/{walletId}/{orderId}/trades")]
-        Task<IEnumerable<TradeModel>> GetTradesByOrderIdAsync(Guid walletId, Guid orderId);
     }
 }

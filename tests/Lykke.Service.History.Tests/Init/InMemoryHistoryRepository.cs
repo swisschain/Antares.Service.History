@@ -54,7 +54,7 @@ namespace Lykke.Service.History.Tests.Init
 
         public Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
             int limit, string assetpairId = null,
-            string assetId = null)
+            string assetId = null, DateTime? fromDt = null, DateTime? toDt = null)
         {
             var typesMap = new Dictionary<HistoryType, Type>
             {
@@ -73,6 +73,12 @@ namespace Lykke.Service.History.Tests.Init
                 .OrderByDescending(x => x.Timestamp)
                 .Skip(offset)
                 .Take(limit));
+        }
+
+        public Task<IEnumerable<Trade>> GetTradesByWallet(Guid walletId, int offset, int limit, string assetPairId = null, string assetId = null,
+            DateTime? fromDt = null, DateTime? toDt = null, bool? buyTrades = null)
+        {
+            throw new NotImplementedException();
         }
     }
 }

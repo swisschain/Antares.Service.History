@@ -14,8 +14,13 @@ namespace Lykke.Service.History.Client
         IHistoryApi HistoryApi { get; }
 
         /// <summary>
-        /// 
+        /// Orders api interface
         /// </summary>
         IOrdersApi OrdersApi { get; }
+        
+        /// <summary>
+        /// Trades api interface
+        /// </summary>
+        ITradesApi TradesApi { get; }
     }
 }

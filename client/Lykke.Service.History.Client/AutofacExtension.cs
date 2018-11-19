@@ -10,6 +10,9 @@ using Refit;
 
 namespace Lykke.Service.History.Client
 {
+    /// <summary>
+    /// History service autofac registration extension
+    /// </summary>
     [PublicAPI]
     public static class AutofacExtension
     {
