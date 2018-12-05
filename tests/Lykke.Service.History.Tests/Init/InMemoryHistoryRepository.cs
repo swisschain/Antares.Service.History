@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.History;
 
@@ -11,7 +12,7 @@ namespace Lykke.Service.History.Tests.Init
     {
         private readonly List<BaseHistoryRecord> _data = new List<BaseHistoryRecord>();
 
-        public Task<BaseHistoryRecord> Get(Guid id, Guid walletId)
+        public Task<BaseHistoryRecord> GetAsync(Guid id, Guid walletId)
         {
             return Task.FromResult(_data.FirstOrDefault(x => x.Id == id && x.WalletId == walletId));
         }
@@ -28,7 +29,7 @@ namespace Lykke.Service.History.Tests.Init
 
         public async Task<bool> TryInsertAsync(BaseHistoryRecord entity)
         {
-            if (await Get(entity.Id, entity.WalletId) == null)
+            if (await GetAsync(entity.Id, entity.WalletId) == null)
             {
                 _data.Add(entity);
                 return true;
@@ -39,7 +40,7 @@ namespace Lykke.Service.History.Tests.Init
 
         public async Task<bool> TryDeleteAsync(Guid operationId, Guid walletId)
         {
-            var item = await Get(operationId, walletId);
+            var item = await GetAsync(operationId, walletId);
             if (item == null)
                 return false;
 
@@ -52,9 +53,15 @@ namespace Lykke.Service.History.Tests.Init
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
-            int limit, string assetpairId = null,
-            string assetId = null, DateTime? fromDt = null, DateTime? toDt = null)
+        public Task<IEnumerable<BaseHistoryRecord>> GetByWalletAsync(
+            Guid walletId,
+            HistoryType[] type,
+            int offset,
+            int limit,
+            string assetPairId = null,
+            string assetId = null,
+            DateTime? fromDt = null,
+            DateTime? toDt = null)
         {
             var typesMap = new Dictionary<HistoryType, Type>
             {
@@ -67,7 +74,7 @@ namespace Lykke.Service.History.Tests.Init
             var neededTypes = type.Select(x => typesMap[x]);
 
             return Task.FromResult(_data.Where(x => x.WalletId == walletId && neededTypes.Contains(x.GetType()))
-                .Where(x => string.IsNullOrWhiteSpace(assetpairId) || ((dynamic)x).AssetPairId == assetpairId)
+                .Where(x => string.IsNullOrWhiteSpace(assetPairId) || ((dynamic)x).AssetPairId == assetPairId)
                 .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic)x).BaseAssetId == assetId ||
                             ((dynamic)x).QuotingAssetId == assetId)
                 .OrderByDescending(x => x.Timestamp)
@@ -75,10 +82,40 @@ namespace Lykke.Service.History.Tests.Init
                 .Take(limit));
         }
 
-        public Task<IEnumerable<Trade>> GetTradesByWallet(Guid walletId, int offset, int limit, string assetPairId = null, string assetId = null,
-            DateTime? fromDt = null, DateTime? toDt = null, bool? buyTrades = null)
+        public Task<IEnumerable<Trade>> GetTradesByWalletAsync(
+            Guid walletId,
+            int offset,
+            int limit,
+            string assetPairId = null,
+            string assetId = null,
+            DateTime? fromDt = null,
+            DateTime? toDt = null,
+            bool? buyTrades = null)
         {
-            throw new NotImplementedException();
+            var items = _data.Where(x => x.WalletId == walletId)
+                .Where(x => string.IsNullOrWhiteSpace(assetPairId) || ((dynamic) x).AssetPairId == assetPairId)
+                .Where(x => string.IsNullOrWhiteSpace(assetId) || ((dynamic) x).BaseAssetId == assetId ||
+                            ((dynamic) x).QuotingAssetId == assetId)
+                .OrderByDescending(x => x.Timestamp)
+                .Skip(offset)
+                .Take(limit);
+
+            return Task.FromResult(Mapper.Map<IEnumerable<Trade>>(items));
+        }
+
+        public Task<IEnumerable<Trade>> GetByDatesAsync(
+            DateTime fromDt,
+            DateTime toDt,
+            int offset,
+            int limit)
+        {
+            var items = _data
+                .Where(x => x.Timestamp >= fromDt && x.Timestamp < toDt)
+                .OrderBy(x => x.Timestamp)
+                .Skip(offset)
+                .Take(limit);
+
+            return Task.FromResult(Mapper.Map<IEnumerable<Trade>>(items));
         }
     }
 }

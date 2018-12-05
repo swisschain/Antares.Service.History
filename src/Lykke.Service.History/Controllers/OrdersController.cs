@@ -33,7 +33,7 @@ namespace Lykke.Service.History.Controllers
         [ProducesResponseType(typeof(OrderModel), (int)HttpStatusCode.OK)]
         public async Task<OrderModel> GetOrder(Guid id)
         {
-            return Mapper.Map<OrderModel>(await _ordersRepository.Get(id));
+            return Mapper.Map<OrderModel>(await _ordersRepository.GetAsync(id));
         }
 
         /// <summary>
@@ -63,7 +63,42 @@ namespace Lykke.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
 
-            var data = await _ordersRepository.GetOrders(walletId, type, status, assetPairId, offset, limit);
+            var data = await _ordersRepository.GetOrdersAsync(
+                walletId,
+                type,
+                status,
+                assetPairId,
+                offset,
+                limit);
+
+            return Mapper.Map<IReadOnlyList<OrderModel>>(data);
+        }
+
+        /// <summary>
+        /// Get order list by dates range.
+        /// </summary>
+        /// <param name="from">Inclusive range start</param>
+        /// <param name="to">Exclusive range finish</param>
+        /// <param name="offset">Number of skipped elements</param>
+        /// <param name="limit">Max number of elements to be fetched</param>
+        /// <returns>Orders from specified range.</returns>
+        [HttpGet("bydates/{from}/{to}")]
+        [SwaggerOperation("GetOrderList")]
+        [ProducesResponseType(typeof(IReadOnlyList<OrderModel>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<OrderModel>> GetOrdersByDates(
+            DateTime from,
+            DateTime to,
+            [FromQuery] int offset = 0,
+            [FromQuery] int limit = 100)
+        {
+            if (from >= to)
+                throw new ArgumentException($"Parameter '{nameof(from)}' must be earlier than parameter '{nameof(to)}'");
+
+            var data = await _ordersRepository.GetOrdersByDatesAsync(
+                from,
+                to,
+                offset,
+                limit);
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
         }
@@ -85,11 +120,13 @@ namespace Lykke.Service.History.Controllers
             int offset = 0,
             int limit = 100)
         {
-            var data = await _ordersRepository.GetOrders(walletId,
+            var data = await _ordersRepository.GetOrdersAsync(
+                walletId,
                 new[] { OrderType.Limit, OrderType.StopLimit },
                 new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending }, 
                 assetPairId,
-                offset, limit);
+                offset,
+                limit);
 
             return Mapper.Map<IReadOnlyList<OrderModel>>(data);
         }

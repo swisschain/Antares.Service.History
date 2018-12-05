@@ -55,8 +55,8 @@ namespace Lykke.Service.History.Tests
 
             var repo = _container.Resolve<IHistoryRecordsRepository>();
 
-            var itemFrom = await repo.Get(command.OperationId, command.FromWalletId);
-            var itemTo = await repo.Get(command.OperationId, command.ToWalletId);
+            var itemFrom = await repo.GetAsync(command.OperationId, command.FromWalletId);
+            var itemTo = await repo.GetAsync(command.OperationId, command.ToWalletId);
 
             Assert.NotNull(itemFrom);
             Assert.NotNull(itemTo);

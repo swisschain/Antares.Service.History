@@ -12,11 +12,22 @@ namespace Lykke.Service.History.Core.Domain.Orders
 
         Task<bool> InsertOrUpdateAsync(Order order);
 
-        Task<Order> Get(Guid id);
+        Task<Order> GetAsync(Guid id);
 
-        Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset,
+        Task<IEnumerable<Order>> GetOrdersAsync(
+            Guid walletId,
+            OrderType[] types,
+            OrderStatus[] statuses,
+            string assetPairId,
+            int offset,
             int limit);
-        
-        Task<IEnumerable<Trade>> GetTradesByOrderId(Guid walletId, Guid id);
+
+        Task<IEnumerable<Order>> GetOrdersByDatesAsync(
+            DateTime from,
+            DateTime to,
+            int offset,
+            int limit);
+
+        Task<IEnumerable<Trade>> GetTradesByOrderIdAsync(Guid walletId, Guid id);
     }
 }

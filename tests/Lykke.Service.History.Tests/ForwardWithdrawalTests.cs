@@ -64,7 +64,7 @@ namespace Lykke.Service.History.Tests
 
             var repo = _container.Resolve<IHistoryRecordsRepository>();
 
-            var item = await repo.Get(command.OperationId, command.WalletId);
+            var item = await repo.GetAsync(command.OperationId, command.WalletId);
 
             Assert.NotNull(item);
             Assert.True(item is Cashin);
@@ -78,7 +78,7 @@ namespace Lykke.Service.History.Tests
 
             await Task.Delay(3000);
 
-            item = await repo.Get(command.OperationId, command.WalletId);
+            item = await repo.GetAsync(command.OperationId, command.WalletId);
 
             Assert.Null(item);
         }

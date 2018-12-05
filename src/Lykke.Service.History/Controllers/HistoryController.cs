@@ -51,7 +51,7 @@ namespace Lykke.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(HistoryType)).Cast<HistoryType>().ToArray();
 
-            var data = await _historyRecordsRepository.GetByWallet(walletId, type, offset, limit, assetPairId, assetId, from, to);
+            var data = await _historyRecordsRepository.GetByWalletAsync(walletId, type, offset, limit, assetPairId, assetId, from, to);
 
             return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }
@@ -67,7 +67,7 @@ namespace Lykke.Service.History.Controllers
         [ProducesResponseType(typeof(BaseHistoryModel), (int)HttpStatusCode.OK)]
         public async Task<BaseHistoryModel> GetHistory(Guid walletId, Guid id)
         {
-            var data = await _historyRecordsRepository.Get(id, walletId);
+            var data = await _historyRecordsRepository.GetAsync(id, walletId);
 
             return Mapper.Map<BaseHistoryModel>(data);
         }

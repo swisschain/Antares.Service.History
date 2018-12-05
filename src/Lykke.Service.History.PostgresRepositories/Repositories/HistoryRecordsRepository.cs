@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -40,9 +41,22 @@ set context = jsonb_set(coalesce(context, '{{}}'), '{{{
 where id = @Id
 ";
 
+        private readonly string _tradesDateRangeQuery = $@"SELECT * FROM {Constants.HistoryTableName}
+WHERE type = {(int)HistoryType.Trade} AND create_dt >= '{{0}}' AND create_dt < '{{1}}' ORDER BY create_dt
+LIMIT {{2}} OFFSET {{3}}";
+
         static HistoryRecordsRepository()
         {
             BulkMapping = HistoryEntityBulkMapping.Generate();
+            SqlMapper.SetTypeMap(
+                typeof(HistoryEntity),
+                new CustomPropertyTypeMap(
+                    typeof(HistoryEntity),
+                    (type, columnName) =>
+                        type.GetProperties().FirstOrDefault(prop =>
+                            prop.GetCustomAttributes(false)
+                                .OfType<ColumnAttribute>()
+                                .Any(attr => attr.Name == columnName))));
         }
 
         public HistoryRecordsRepository(ConnectionFactory connectionFactory)
@@ -50,7 +64,7 @@ where id = @Id
             _connectionFactory = connectionFactory;
         }
 
-        public async Task<BaseHistoryRecord> Get(Guid id, Guid walletId)
+        public async Task<BaseHistoryRecord> GetAsync(Guid id, Guid walletId)
         {
             using (var connection = _connectionFactory.CreateDataContext())
             {
@@ -118,8 +132,15 @@ where id = @Id
             }
         }
 
-        public async Task<IEnumerable<BaseHistoryRecord>> GetByWallet(Guid walletId, HistoryType[] type, int offset,
-            int limit, string assetPairId = null, string assetId = null, DateTime? fromDt = null, DateTime? toDt = null)
+        public async Task<IEnumerable<BaseHistoryRecord>> GetByWalletAsync(
+            Guid walletId,
+            HistoryType[] type,
+            int offset,
+            int limit,
+            string assetPairId = null,
+            string assetId = null,
+            DateTime? fromDt = null,
+            DateTime? toDt = null)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -138,8 +159,15 @@ where id = @Id
             }
         }
 
-        public async Task<IEnumerable<Trade>> GetTradesByWallet(Guid walletId, int offset,
-            int limit, string assetPairId = null, string assetId = null, DateTime? fromDt = null, DateTime? toDt = null, bool? buyTrades = null)
+        public async Task<IEnumerable<Trade>> GetTradesByWalletAsync(
+            Guid walletId,
+            int offset,
+            int limit,
+            string assetPairId = null,
+            string assetId = null,
+            DateTime? fromDt = null,
+            DateTime? toDt = null,
+            bool? buyTrades = null)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -155,6 +183,29 @@ where id = @Id
                     .Take(limit);
 
                 return Mapper.Map<IEnumerable<Trade>>(await query.ToListAsync());
+            }
+        }
+
+        public async Task<IEnumerable<Trade>> GetByDatesAsync(
+            DateTime fromDt,
+            DateTime toDt,
+            int offset,
+            int limit)
+        {
+            if (fromDt >= toDt)
+                return new Trade[0];
+
+            using (var connection = await _connectionFactory.CreateNpgsqlConnection())
+            {
+                var query = string.Format(
+                    _tradesDateRangeQuery,
+                    fromDt.ToString(Constants.DateTimeFormat),
+                    toDt.ToString(Constants.DateTimeFormat),
+                    limit,
+                    offset);
+                var items = await connection.QueryAsync<HistoryEntity>(query);
+
+                return items.Select(Mapper.Map<Trade>);
             }
         }
     }
