@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -70,9 +71,22 @@ ON CONFLICT (id) DO UPDATE
         sequence_number = @SequenceNumber
             where {Constants.OrdersTableName}.sequence_number < @SequenceNumber";
 
+        private readonly string _ordersDateRangeQuery = $@"SELECT * FROM {Constants.OrdersTableName}
+WHERE create_dt >= '{{0}}' AND create_dt < '{{1}}' ORDER BY create_dt
+LIMIT {{2}} OFFSET {{3}}";
+
         static OrdersRepository()
         {
             BulkMapping = OrderEntityBulkMapping.Generate();
+            SqlMapper.SetTypeMap(
+                typeof(OrderEntity),
+                new CustomPropertyTypeMap(
+                    typeof(OrderEntity),
+                    (type, columnName) =>
+                        type.GetProperties().FirstOrDefault(prop =>
+                            prop.GetCustomAttributes(false)
+                                .OfType<ColumnAttribute>()
+                                .Any(attr => attr.Name == columnName))));
         }
 
         public OrdersRepository(ConnectionFactory connectionFactory)
@@ -114,7 +128,7 @@ ON CONFLICT (id) DO UPDATE
             }
         }
 
-        public async Task<Order> Get(Guid id)
+        public async Task<Order> GetAsync(Guid id)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -122,7 +136,13 @@ ON CONFLICT (id) DO UPDATE
             }
         }
 
-        public async Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset, int limit)
+        public async Task<IEnumerable<Order>> GetOrdersAsync(
+            Guid walletId,
+            OrderType[] types,
+            OrderStatus[] statuses,
+            string assetPairId,
+            int offset,
+            int limit)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -137,7 +157,30 @@ ON CONFLICT (id) DO UPDATE
             }
         }
 
-        public async Task<IEnumerable<Trade>> GetTradesByOrderId(Guid walletId, Guid id)
+        public async Task<IEnumerable<Order>> GetOrdersByDatesAsync(
+            DateTime from,
+            DateTime to,
+            int offset,
+            int limit)
+        {
+            if (from >= to)
+                return new Order[0];
+
+            using (var connection = await _connectionFactory.CreateNpgsqlConnection())
+            {
+                var query = string.Format(
+                    _ordersDateRangeQuery,
+                    from.ToString(Constants.DateTimeFormat),
+                    to.ToString(Constants.DateTimeFormat),
+                    limit,
+                    offset);
+                var items = await connection.QueryAsync<OrderEntity>(query);
+
+                return items.Select(Mapper.Map<Order>);
+            }
+        }
+
+        public async Task<IEnumerable<Trade>> GetTradesByOrderIdAsync(Guid walletId, Guid id)
         {
             using (var context = _connectionFactory.CreateDataContext())
             {
@@ -145,7 +188,7 @@ ON CONFLICT (id) DO UPDATE
                     .Where(x => x.WalletId == walletId &&  x.Type == HistoryType.Trade)
                     .Where(x => x.Context.JsonbPath<string>(nameof(HistoryEntityContext.OrderId)) == id.ToString())
                     .OrderByDescending(x => x.Timestamp);
-                
+
                 return Mapper.Map<IEnumerable<Trade>>(await query.ToListAsync());
             }
         }

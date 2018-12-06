@@ -145,24 +145,24 @@ namespace Lykke.Service.History.Tests
 
             var (walletId, data) = await GenerateData(pairs, assets);
 
-            var q1 = await repo.GetByWallet(walletId, new[] {HistoryType.CashIn, HistoryType.CashOut}, 0, 100);
+            var q1 = await repo.GetByWalletAsync(walletId, new[] {HistoryType.CashIn, HistoryType.CashOut}, 0, 100);
 
             Assert.Equal(data.OfType<Cashin>().Count() + data.OfType<Cashout>().Count(), q1.Count());
 
-            var q2 = await repo.GetByWallet(walletId, new[] {HistoryType.Trade}, 0, 100);
+            var q2 = await repo.GetByWalletAsync(walletId, new[] {HistoryType.Trade}, 0, 100);
 
             Assert.Equal(data.OfType<Trade>().Count(), q2.Count());
 
-            var q3 = await repo.GetByWallet(walletId,
+            var q3 = await repo.GetByWalletAsync(walletId,
                 new[] {HistoryType.CashIn, HistoryType.CashOut, HistoryType.Trade}, 0, 1);
 
             Assert.Single(q3);
 
-            var q4 = await repo.GetByWallet(walletId, new[] {HistoryType.Trade}, 0, 100, assetId: "USD");
+            var q4 = await repo.GetByWalletAsync(walletId, new[] {HistoryType.Trade}, 0, 100, assetId: "USD");
 
             Assert.Equal(data.OfType<Trade>().Count(x => x.BaseAssetId == "USD" || x.QuotingAssetId == "USD"), q4.Count());
 
-            var q5 = await repo.GetByWallet(walletId, new[] {HistoryType.Trade}, 0, 100, "BTCUSD");
+            var q5 = await repo.GetByWalletAsync(walletId, new[] {HistoryType.Trade}, 0, 100, "BTCUSD");
 
             Assert.Equal(data.OfType<Trade>().Count(x => x.AssetPairId == "BTCUSD"), q5.Count());
         }
@@ -187,7 +187,7 @@ namespace Lykke.Service.History.Tests
             await repotrades.InsertBulkAsync(orders.SelectMany(x => x.Trades));
 
             var newestOrder = orders.OrderByDescending(x => x.SequenceNumber).First();
-            var orderFromRepo = await repo.Get(orderId);
+            var orderFromRepo = await repo.GetAsync(orderId);
 
             Assert.Equal(newestOrder.SequenceNumber, orderFromRepo.SequenceNumber);
             Assert.Equal(newestOrder.Status, orderFromRepo.Status);
@@ -209,7 +209,7 @@ namespace Lykke.Service.History.Tests
 
             await repo.InsertOrUpdateAsync(order);
 
-            var orderFromRepo = await repo.Get(orderId);
+            var orderFromRepo = await repo.GetAsync(orderId);
 
             Assert.Equal(OrderStatus.Cancelled, orderFromRepo.Status);
 
@@ -218,7 +218,7 @@ namespace Lykke.Service.History.Tests
 
             await repo.InsertOrUpdateAsync(order);
 
-            orderFromRepo = await repo.Get(orderId);
+            orderFromRepo = await repo.GetAsync(orderId);
 
             Assert.Equal(OrderStatus.Cancelled, orderFromRepo.Status);
 
@@ -227,7 +227,7 @@ namespace Lykke.Service.History.Tests
 
             await repo.InsertOrUpdateAsync(order);
 
-            orderFromRepo = await repo.Get(orderId);
+            orderFromRepo = await repo.GetAsync(orderId);
 
             Assert.Equal(OrderStatus.Matched, orderFromRepo.Status);
         }

@@ -50,12 +50,18 @@ namespace Lykke.Service.History.Tests.Init
             return Task.FromResult(true);
         }
 
-        public Task<Order> Get(Guid id)
+        public Task<Order> GetAsync(Guid id)
         {
             return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id));
         }
 
-        public Task<IEnumerable<Order>> GetOrders(Guid walletId, OrderType[] types, OrderStatus[] statuses, string assetPairId, int offset, int limit)
+        public Task<IEnumerable<Order>> GetOrdersAsync(
+            Guid walletId,
+            OrderType[] types,
+            OrderStatus[] statuses,
+            string assetPairId,
+            int offset,
+            int limit)
         {
             return Task.FromResult(_orders
                 .Where(x => x.WalletId == walletId && statuses.Contains(x.Status) && types.Contains(x.Type))
@@ -63,7 +69,19 @@ namespace Lykke.Service.History.Tests.Init
                 .Skip(offset).Take(limit));
         }
 
-        public Task<IEnumerable<Trade>> GetTradesByOrderId(Guid walletId, Guid id)
+        public Task<IEnumerable<Order>> GetOrdersByDatesAsync(
+            DateTime from,
+            DateTime to,
+            int offset,
+            int limit)
+        {
+            return Task.FromResult(_orders
+                .Where(x => x.CreateDt >= from && x.CreateDt < to)
+                .Skip(offset)
+                .Take(limit));
+        }
+
+        public Task<IEnumerable<Trade>> GetTradesByOrderIdAsync(Guid walletId, Guid id)
         {
             return Task.FromResult(_orders.FirstOrDefault(x => x.Id == id)?.Trades.AsEnumerable());
         }

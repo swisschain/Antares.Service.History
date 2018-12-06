@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,7 +26,7 @@ namespace Lykke.Service.History.Controllers
             _ordersRepository = ordersRepository;
             _historyRecordsRepository = historyRecordsRepository;
         }
-        
+
         /// <summary>
         /// Get wallet trades
         /// </summary>
@@ -58,11 +58,11 @@ namespace Lykke.Service.History.Controllers
             if (tradeType == TradeType.Sell)
                 onlyBuyTrades = false;
 
-            var data = await _historyRecordsRepository.GetTradesByWallet(walletId, offset, limit, assetPairId, assetId, from, to, onlyBuyTrades);
+            var data = await _historyRecordsRepository.GetTradesByWalletAsync(walletId, offset, limit, assetPairId, assetId, from, to, onlyBuyTrades);
 
             return Mapper.Map<IReadOnlyList<TradeModel>>(data);
         }
-        
+
         /// <summary>
         /// Get order trades
         /// </summary>
@@ -74,8 +74,37 @@ namespace Lykke.Service.History.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TradeModel>), (int)HttpStatusCode.OK)]
         public async Task<IReadOnlyList<TradeModel>> GetTradesByOrderId(Guid walletId, Guid id)
         {
-            var trades = await _ordersRepository.GetTradesByOrderId(walletId, id);
+            var trades = await _ordersRepository.GetTradesByOrderIdAsync(walletId, id);
             return Mapper.Map<IReadOnlyList<TradeModel>>(trades);
+        }
+
+        /// <summary>
+        /// Get wallet trades by dates range.
+        /// </summary>
+        /// <param name="from">Inclusive range start</param>
+        /// <param name="to">Exclusive range finish</param>
+        /// <param name="offset">Number of skipped elements</param>
+        /// <param name="limit">Max number of elements to be fetched</param>
+        /// <returns>Trades from specified range.</returns>
+        [HttpGet("bydates/{from}/{to}")]
+        [SwaggerOperation("GetTrades")]
+        [ProducesResponseType(typeof(IReadOnlyList<TradeModel>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<TradeModel>> GetTradesByDates(
+            DateTime from,
+            DateTime to,
+            [FromQuery] int offset = 0,
+            [FromQuery] int limit = 100)
+        {
+            if (from >= to)
+                throw new ArgumentException($"Parameter '{nameof(from)}' must be earlier than parameter '{nameof(to)}'");
+
+            var data = await _historyRecordsRepository.GetByDatesAsync(
+                from,
+                to,
+                offset,
+                limit);
+
+            return Mapper.Map<IReadOnlyList<TradeModel>>(data);
         }
     }
 }
