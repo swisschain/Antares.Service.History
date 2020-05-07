@@ -41,6 +41,7 @@ ON CONFLICT (id) DO UPDATE
             where {Constants.OrdersTableName}.sequence_number < excluded.sequence_number";
 
         private readonly ConnectionFactory _connectionFactory;
+        private readonly string _orderGetType;
 
         private readonly string _createTempTableQuery = $@"
 create temp table if not exists {Constants.TempOrdersTableName} 
@@ -89,9 +90,12 @@ LIMIT {{2}} OFFSET {{3}}";
                                 .Any(attr => attr.Name == columnName))));
         }
 
-        public OrdersRepository(ConnectionFactory connectionFactory)
+        public OrdersRepository(
+            ConnectionFactory connectionFactory,
+            string orderGetType)
         {
             _connectionFactory = connectionFactory;
+            _orderGetType = orderGetType;
         }
 
         public async Task<bool> InsertOrUpdateAsync(Order order)
@@ -153,7 +157,19 @@ LIMIT {{2}} OFFSET {{3}}";
                     .Skip(offset)
                     .Take(limit);
 
-                return (await query.ToListAsync()).Select(Mapper.Map<Order>);
+                List<OrderEntity> data;
+
+                if (_orderGetType == "async")
+                {
+                    data = await query.ToListAsync();
+                }
+                else
+                {
+                    data = query.ToList();
+                }
+
+                var result = data.Select(Mapper.Map<Order>).ToList();
+                return result;
             }
         }
 

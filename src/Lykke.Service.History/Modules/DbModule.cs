@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
 using Lykke.Service.History.PostgresRepositories;
@@ -24,7 +25,11 @@ namespace Lykke.Service.History.Modules
 
             builder.RegisterType<HistoryRecordsRepository>().As<IHistoryRecordsRepository>();
 
-            builder.RegisterType<OrdersRepository>().As<IOrdersRepository>();
+            string orderGetType = Environment.GetEnvironmentVariable("OrderGetType") ?? "async";
+
+            builder.RegisterType<OrdersRepository>()
+                .WithParameter(TypedParameter.From(orderGetType))
+                .As<IOrdersRepository>();
         }
     }
 }
