@@ -7,7 +7,7 @@ using AutoMapper;
 using Lykke.Service.History.Contracts.History;
 using Lykke.Service.History.Core.Domain.History;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Annotations;
 using HistoryType = Lykke.Service.History.Core.Domain.Enums.HistoryType;
 
 namespace Lykke.Service.History.Controllers
@@ -55,7 +55,7 @@ namespace Lykke.Service.History.Controllers
 
             return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }
-        
+
         /// <summary>
         /// Get wallet history
         /// </summary>

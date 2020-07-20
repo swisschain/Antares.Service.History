@@ -5,6 +5,8 @@ using AutoMapper;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
+using Lykke.Job.History.Workflow.Handlers;
+using Lykke.Job.History.Workflow.Projections;
 using Lykke.Logs;
 using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Messaging;
@@ -15,11 +17,9 @@ using Lykke.Service.History.Contracts.Cqrs.Commands;
 using Lykke.Service.History.Contracts.Cqrs.Events;
 using Lykke.Service.History.Core.Domain.History;
 using Lykke.Service.History.Core.Domain.Orders;
+using Lykke.Service.History.Core.Settings;
 using Lykke.Service.History.Modules;
 using Lykke.Service.History.PostgresRepositories.Mappings;
-using Lykke.Service.History.Settings;
-using Lykke.Service.History.Workflow.Handlers;
-using Lykke.Service.History.Workflow.Projections;
 using Lykke.Service.PostProcessing.Contracts.Cqrs;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader.ReloadingManager;
@@ -38,7 +38,7 @@ namespace Lykke.Service.History.Tests.Init
         {
             Mapper.Initialize(cfg =>
             {
-                cfg.AddProfiles(typeof(ServiceProfile));
+                cfg.AddProfiles(typeof(Lykke.Job.History.AutoMapper.ServiceProfile));
                 cfg.AddProfiles(typeof(RepositoryProfile));
             });
         }
@@ -74,7 +74,9 @@ namespace Lykke.Service.History.Tests.Init
                         {
                             {"InMemory", new TransportInfo("none", "none", "none", null, "InMemory")}
                         }));
-                    return CreateEngine(ctx, messagingEngine, logFactory);
+                    var cqrsEngine = CreateEngine(ctx, messagingEngine, logFactory);
+                    cqrsEngine.StartAll();
+                    return cqrsEngine;
                 })
                 .As<ICqrsEngine>()
                 .AutoActivate()

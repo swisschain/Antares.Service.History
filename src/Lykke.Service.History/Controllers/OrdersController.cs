@@ -8,7 +8,7 @@ using Lykke.Service.History.Contracts.Orders;
 using Lykke.Service.History.Core.Domain.Enums;
 using Lykke.Service.History.Core.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Lykke.Service.History.Controllers
 {
@@ -123,7 +123,7 @@ namespace Lykke.Service.History.Controllers
             var data = await _ordersRepository.GetOrdersAsync(
                 walletId,
                 new[] { OrderType.Limit, OrderType.StopLimit },
-                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending }, 
+                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending },
                 assetPairId,
                 offset,
                 limit);
