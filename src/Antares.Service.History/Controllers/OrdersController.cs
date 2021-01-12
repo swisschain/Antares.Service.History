@@ -63,10 +63,32 @@ namespace Antares.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
 
+            var mappedType = type.Select(x => x switch
+            {
+                OrderType.Unknown => Antares.Service.History.Core.Domain.Enums.OrderType.Unknown,
+                OrderType.Market => Antares.Service.History.Core.Domain.Enums.OrderType.Market,
+                OrderType.Limit => Antares.Service.History.Core.Domain.Enums.OrderType.Limit,
+                OrderType.StopLimit => Antares.Service.History.Core.Domain.Enums.OrderType.StopLimit,
+                _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+            }).ToArray();
+
+            var mappedStatus = status.Select(x => x switch
+            {
+                OrderStatus.Unknown => Antares.Service.History.Core.Domain.Enums.OrderStatus.Unknown,
+                OrderStatus.Placed => Antares.Service.History.Core.Domain.Enums.OrderStatus.Placed,
+                OrderStatus.PartiallyMatched => Antares.Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched,
+                OrderStatus.Matched => Antares.Service.History.Core.Domain.Enums.OrderStatus.Matched,
+                OrderStatus.Pending => Antares.Service.History.Core.Domain.Enums.OrderStatus.Pending,
+                OrderStatus.Cancelled => Antares.Service.History.Core.Domain.Enums.OrderStatus.Cancelled,
+                OrderStatus.Replaced => Antares.Service.History.Core.Domain.Enums.OrderStatus.Replaced,
+                OrderStatus.Rejected => Antares.Service.History.Core.Domain.Enums.OrderStatus.Rejected,
+                _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+            }).ToArray();
+
             var data = await _ordersRepository.GetOrdersAsync(
                 walletId,
-                type,
-                status,
+                mappedType,
+                mappedStatus,
                 assetPairId,
                 offset,
                 limit);
@@ -122,8 +144,11 @@ namespace Antares.Service.History.Controllers
         {
             var data = await _ordersRepository.GetOrdersAsync(
                 walletId,
-                new[] { OrderType.Limit, OrderType.StopLimit },
-                new[] { OrderStatus.Placed, OrderStatus.PartiallyMatched, OrderStatus.Pending },
+                new[] { Antares.Service.History.Core.Domain.Enums.OrderType.Limit,
+                    Antares.Service.History.Core.Domain.Enums.OrderType.StopLimit },
+                new[] { Antares.Service.History.Core.Domain.Enums.OrderStatus.Placed,
+                    Antares.Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched,
+                    Antares.Service.History.Core.Domain.Enums.OrderStatus.Pending },
                 assetPairId,
                 offset,
                 limit);

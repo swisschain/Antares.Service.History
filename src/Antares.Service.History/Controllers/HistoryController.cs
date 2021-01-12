@@ -51,7 +51,22 @@ namespace Antares.Service.History.Controllers
             if (type.Length == 0)
                 type = Enum.GetValues(typeof(HistoryType)).Cast<HistoryType>().ToArray();
 
-            var data = await _historyRecordsRepository.GetByWalletAsync(walletId, type, offset, limit, assetPairId, assetId, from, to);
+            var mappedType = type.Select(x => x switch
+            {
+                HistoryType.CashIn => Antares.Service.History.Core.Domain.Enums.HistoryType.CashIn,
+                HistoryType.CashOut => Antares.Service.History.Core.Domain.Enums.HistoryType.CashOut,
+                HistoryType.Trade => Antares.Service.History.Core.Domain.Enums.HistoryType.Trade,
+                HistoryType.OrderEvent => Antares.Service.History.Core.Domain.Enums.HistoryType.OrderEvent,
+
+                _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+            }).ToArray();
+            var data = await _historyRecordsRepository.GetByWalletAsync(walletId, mappedType, 
+                offset, 
+                limit, 
+                assetPairId, 
+                assetId, 
+                from, 
+                to);
 
             return Mapper.Map<IReadOnlyList<BaseHistoryModel>>(data);
         }
