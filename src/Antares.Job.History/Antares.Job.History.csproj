@@ -5,12 +5,12 @@
     <Version>1.0.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.0\Lykke.Job.History.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\net5.0\Antares.Job.History.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>bin\Debug\net5.0\Antares.Job.History.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
