@@ -34,8 +34,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antares.Service.History.Cli
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antares.Service.History.Contracts", "client\Antares.Service.History.Contracts\Antares.Service.History.Contracts.csproj", "{E4199193-31F4-401B-8464-96783A6195D2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antares.Sdk", "..\Lykke.Sdk\src\Antares.Sdk\Antares.Sdk.csproj", "{E20A35C0-C442-48C7-A64A-2A046E2C6F45}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,10 +72,6 @@ Global
 		{E4199193-31F4-401B-8464-96783A6195D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4199193-31F4-401B-8464-96783A6195D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4199193-31F4-401B-8464-96783A6195D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E20A35C0-C442-48C7-A64A-2A046E2C6F45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E20A35C0-C442-48C7-A64A-2A046E2C6F45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E20A35C0-C442-48C7-A64A-2A046E2C6F45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E20A35C0-C442-48C7-A64A-2A046E2C6F45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
