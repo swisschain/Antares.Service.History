@@ -1,9 +1,9 @@
-name: CI dev build
+name: CI test build
 
 on:
   push:
       branches:
-        - dev-*
+        - test-*
 
 jobs:
   build:
@@ -31,7 +31,7 @@ jobs:
     - name: Publish API to Registry
       uses: swisschain/Publish-Docker-Github-Action@master
       with:
-        name: swisschains/antares-history-api:dev
+        name: swisschains/antares-history-api:test
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         workdir: ./publish-api
@@ -40,7 +40,7 @@ jobs:
     - name: Publish worker to Registry
       uses: swisschain/Publish-Docker-Github-Action@master
       with:
-        name: swisschains/antares-history-job:dev
+        name: swisschains/antares-history-job:test
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         workdir: ./publish-worker
@@ -49,12 +49,12 @@ jobs:
     - name: Restart service
       uses: swisschain/kube-restart-pods@master
       env:
-        KUBE_CONFIG_DATA: ${{ secrets.LYKKE_DEV_KUBE_CONFIG_DATA }}
-        NAMESPACE: lykke-service
+        KUBE_CONFIG_DATA: ${{ secrets.LYKKE_TEST_KUBE_CONFIG_DATA }}
+        NAMESPACE: services
         POD: history
     - name: Restart job
       uses: swisschain/kube-restart-pods@master
       env:
-        KUBE_CONFIG_DATA: ${{ secrets.LYKKE_DEV_KUBE_CONFIG_DATA }}
+        KUBE_CONFIG_DATA: ${{ secrets.LYKKE_TEST_KUBE_CONFIG_DATA }}
         NAMESPACE: lykke-jobs
         POD: history-job
