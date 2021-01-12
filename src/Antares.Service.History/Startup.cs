@@ -3,9 +3,12 @@ using Antares.Sdk;
 using Antares.Service.History.AutoMapper;
 using Antares.Service.History.Core.Settings;
 using Antares.Service.History.PostgresRepositories.Mappings;
+using Autofac;
 using AutoMapper;
 using JetBrains.Annotations;
+using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Antares.Service.History
@@ -19,8 +22,21 @@ namespace Antares.Service.History
             ApiVersion = "v1"
         };
 
+        private LykkeServiceOptions<AppSettings> _lykkeOptions;
+        private IReloadingManagerWithConfiguration<AppSettings> _settings;
+
         [UsedImplicitly]
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            var configurationRoot = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            builder.ConfigureContainerBuilder(_lykkeOptions, configurationRoot, _settings);
+        }
+
+        [UsedImplicitly]
+        public void ConfigureServices(IServiceCollection services)
         {
             Mapper.Initialize(cfg =>
             {
@@ -28,7 +44,7 @@ namespace Antares.Service.History
                 cfg.AddProfiles(typeof(RepositoryProfile));
             });
 
-            return services.BuildServiceProvider<AppSettings>(options =>
+            (_lykkeOptions, _settings) = services.ConfigureServices<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
 
