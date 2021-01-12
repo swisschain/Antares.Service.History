@@ -56,5 +56,5 @@ jobs:
       uses: swisschain/kube-restart-pods@master
       env:
         KUBE_CONFIG_DATA: ${{ secrets.LYKKE_DEV_KUBE_CONFIG_DATA }}
-        NAMESPACE: lykke-job
+        NAMESPACE: lykke-jobs
         POD: history-job
