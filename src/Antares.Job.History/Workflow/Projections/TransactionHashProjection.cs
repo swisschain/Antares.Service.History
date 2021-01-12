@@ -90,7 +90,7 @@ namespace Antares.Job.History.Workflow.Projections
         /// <param name="event"></param>
         /// <returns></returns>
         public async Task<CommandHandlingResult> Handle(
-            Job.SiriusDepositsDetector.Contract.Events.CashinCompletedEvent @event)
+            Lykke.Job.SiriusDepositsDetector.Contract.Events.CashinCompletedEvent @event)
         {
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TransactionHash))
             {
@@ -134,7 +134,7 @@ namespace Antares.Job.History.Workflow.Projections
         /// <param name="event"></param>
         /// <returns></returns>
         public async Task<CommandHandlingResult> Handle(
-            Job.SiriusCashoutProcessor.Contract.Events.CashoutCompletedEvent @event)
+            Lykke.Job.SiriusCashoutProcessor.Contract.Events.CashoutCompletedEvent @event)
         {
             if (!await _historyRecordsRepository.UpdateBlockchainHashAsync(@event.OperationId, @event.TransactionHash))
             {

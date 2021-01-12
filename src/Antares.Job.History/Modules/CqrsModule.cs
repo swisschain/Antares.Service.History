@@ -156,13 +156,13 @@ namespace Antares.Job.History.Modules
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
 
-                    .ListeningEvents(typeof(Job.SiriusDepositsDetector.Contract.Events.CashinCompletedEvent))
+                    .ListeningEvents(typeof(Lykke.Job.SiriusDepositsDetector.Contract.Events.CashinCompletedEvent))
                     .From(SiriusDepositsDetectorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), SiriusDepositsDetectorBoundedContext.Name)
 
-                    .ListeningEvents(typeof(Job.SiriusCashoutProcessor.Contract.Events.CashoutCompletedEvent))
+                    .ListeningEvents(typeof(Lykke.Job.SiriusCashoutProcessor.Contract.Events.CashoutCompletedEvent))
                     .From(SiriusCashoutProcessorBoundedContext.Name)
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
