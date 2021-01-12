@@ -17,6 +17,8 @@ using Lykke.Cqrs.Configuration;
 using Lykke.Cqrs.Middleware.Logging;
 using Lykke.Job.BlockchainCashinDetector.Contract;
 using Lykke.Job.BlockchainCashoutProcessor.Contract;
+using Lykke.Job.SiriusCashoutProcessor.Contract;
+using Lykke.Job.SiriusDepositsDetector.Contract;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
@@ -153,6 +155,18 @@ namespace Antares.Job.History.Modules
                     .On(defaultRoute)
                     .WithEndpointResolver(sagasMessagePackEndpointResolver)
                     .WithProjection(typeof(TransactionHashProjection), BlockchainCashinDetectorBoundedContext.Name)
+
+                    .ListeningEvents(typeof(Job.SiriusDepositsDetector.Contract.Events.CashinCompletedEvent))
+                    .From(SiriusDepositsDetectorBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(TransactionHashProjection), SiriusDepositsDetectorBoundedContext.Name)
+
+                    .ListeningEvents(typeof(Job.SiriusCashoutProcessor.Contract.Events.CashoutCompletedEvent))
+                    .From(SiriusCashoutProcessorBoundedContext.Name)
+                    .On(defaultRoute)
+                    .WithEndpointResolver(sagasMessagePackEndpointResolver)
+                    .WithProjection(typeof(TransactionHashProjection), SiriusCashoutProcessorBoundedContext.Name)
 
                     .ListeningEvents(
                         typeof(Lykke.Job.BlockchainCashoutProcessor.Contract.Events.CashoutCompletedEvent),
