@@ -21,9 +21,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --configuration Release
     - name: Publish API
-      run: dotnet publish ./src/Antares.Service.History/Antares.Service.History.csproj --output ./publish-api --configuration Release
+      run: dotnet publish --no-build ./src/Antares.Service.History/Antares.Service.History.csproj --output ./publish-api --configuration Release
     - name: Publish worker
-      run: dotnet publish ./src/Antares.Job.History/Antares.Job.History.csproj --output ./publish-worker --configuration Release
+      run: dotnet publish --no-build ./src/Antares.Job.History/Antares.Job.History.csproj --output ./publish-worker --configuration Release
     - name: Check Webhooks dir
       run: ls ./publish-webhooks
     - name: Check API dir
