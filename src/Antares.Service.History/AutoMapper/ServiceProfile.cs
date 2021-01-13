@@ -3,7 +3,6 @@ using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
 using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
-using TradeModel = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.TradeModel;
 
 namespace Antares.Service.History.AutoMapper
 {
@@ -11,7 +10,7 @@ namespace Antares.Service.History.AutoMapper
     {
         public ServiceProfile()
         {
-            CreateMap<TradeModel, Trade>();
+            CreateMap<Contracts.History.TradeModel, Trade>();
 
             CreateMap<OrderModel, Order>();
 
