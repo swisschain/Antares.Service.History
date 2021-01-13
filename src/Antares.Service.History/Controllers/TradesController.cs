@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Antares.Service.History.Contracts.Enums;
+using Antares.Service.History.Contracts.History;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
