@@ -3,7 +3,7 @@ name: CI test build
 on:
   push:
       branches:
-        - test-*
+        - test
 
 jobs:
   build:
