@@ -81,6 +81,7 @@ LIMIT {{2}} OFFSET {{3}}";
 
                 try
                 {
+                    //TODO: Save Async
                     BulkMapping.SaveAll(connection, baseHistoryRecords.Select(HistoryTypeMapper.Map));
                 }
                 catch (PostgresException e) when (e.SqlState == DuplicateSqlState)

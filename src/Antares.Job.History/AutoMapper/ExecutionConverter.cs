@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using Antares.Job.History.RabbitSubscribers.Events;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 
 namespace Antares.Job.History.AutoMapper
 {

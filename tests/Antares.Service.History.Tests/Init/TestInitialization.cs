@@ -19,8 +19,6 @@ using Lykke.Logs;
 using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
-using Lykke.Service.PostProcessing.Contracts.Cqrs;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader.ReloadingManager;
 using Xunit;
 
@@ -57,10 +55,6 @@ namespace Antares.Service.History.Tests.Init
 
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>()
                 .SingleInstance();
-
-            builder.RegisterType<CashInProjection>();
-            builder.RegisterType<CashOutProjection>();
-            builder.RegisterType<CashTransferProjection>();
 
             builder.RegisterType<ForwardWithdrawalCommandHandler>();
 
@@ -131,19 +125,6 @@ namespace Antares.Service.History.Tests.Init
                 new DefaultEndpointProvider(),
                 true,
                 Register.DefaultEndpointResolver(new InMemoryEndpointResolver()),
-                Register.BoundedContext(PostProcessingBoundedContext.Name)
-                    .PublishingEvents(typeof(CashInProcessedEvent))
-                    .With(defaultRoute)
-                    .WithLoopback()
-                    .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
-                    .PublishingEvents(typeof(CashOutProcessedEvent))
-                    .With(defaultRoute)
-                    .WithLoopback()
-                    .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
-                    .PublishingEvents(typeof(CashTransferProcessedEvent))
-                    .With(defaultRoute)
-                    .WithLoopback()
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name),
 
                 Register.BoundedContext(HistoryBoundedContext.Name)
                     .ListeningCommands(typeof(CreateForwardCashinCommand), typeof(DeleteForwardCashinCommand))

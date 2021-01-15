@@ -1,8 +1,8 @@
 ﻿using Antares.Service.History.Contracts.History;
+using Antares.Service.History.Contracts.Orders;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
 
 namespace Antares.Service.History.AutoMapper
 {

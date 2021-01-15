@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Antares.Job.History.RabbitSubscribers.Events;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
 using Common;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Subscriber;
-using Lykke.Service.PostProcessing.Contracts.Cqrs;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using MoreLinq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

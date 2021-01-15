@@ -23,8 +23,6 @@ using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
-using Lykke.Service.PostProcessing.Contracts.Cqrs;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
 using Lykke.SettingsReader;
 using RabbitMQ.Client;
 
@@ -67,9 +65,6 @@ namespace Antares.Job.History.Modules
                 .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
                 .SingleInstance();
 
-            builder.RegisterType<CashInProjection>();
-            builder.RegisterType<CashOutProjection>();
-            builder.RegisterType<CashTransferProjection>();
             builder.RegisterType<TransactionHashProjection>();
 
             builder.RegisterType<EthereumCommandHandler>();
@@ -129,20 +124,6 @@ namespace Antares.Job.History.Modules
                 Register.EventInterceptors(new DefaultEventLoggingInterceptor(ctx.Resolve<ILogFactory>())),
 
                 Register.BoundedContext(HistoryBoundedContext.Name)
-                    .ListeningEvents(typeof(CashInProcessedEvent))
-                    .From(PostProcessingBoundedContext.Name)
-                    .On(defaultRoute)
-                    .WithProjection(typeof(CashInProjection), PostProcessingBoundedContext.Name)
-
-                    .ListeningEvents(typeof(CashOutProcessedEvent))
-                    .From(PostProcessingBoundedContext.Name)
-                    .On(defaultRoute)
-                    .WithProjection(typeof(CashOutProjection), PostProcessingBoundedContext.Name)
-
-                    .ListeningEvents(typeof(CashTransferProcessedEvent))
-                    .From(PostProcessingBoundedContext.Name)
-                    .On(defaultRoute)
-                    .WithProjection(typeof(CashTransferProjection), PostProcessingBoundedContext.Name)
 
                     .ListeningEvents(typeof(CashoutCompletedEvent), typeof(CashinCompletedEvent))
                     .From(BitcoinBoundedContext.Name)

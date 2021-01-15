@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Antares.Job.History.RabbitSubscribers.Events;
 using Antares.Service.History.Contracts.Cqrs.Commands;
 using Antares.Service.History.Contracts.History;
 using Antares.Service.History.Core;
@@ -7,9 +8,8 @@ using Antares.Service.History.Core.Domain.Enums;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
 using AutoMapper;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Events;
-using Lykke.Service.PostProcessing.Contracts.Cqrs.Models;
-using TradeModel = Lykke.Service.PostProcessing.Contracts.Cqrs.Models.TradeModel;
+using OrderModel = Antares.Job.History.RabbitSubscribers.Models.OrderModel;
+using TradeModel = Antares.Job.History.RabbitSubscribers.Models.TradeModel;
 
 namespace Antares.Job.History.AutoMapper
 {
@@ -17,18 +17,6 @@ namespace Antares.Job.History.AutoMapper
     {
         public ServiceProfile()
         {
-            CreateMap<CashInProcessedEvent, Cashin>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => s.OperationId))
-                .ForMember(x => x.State, o => o.UseValue(HistoryState.Finished))
-                .ForMember(x => x.Volume, o => o.MapFrom(s => Math.Abs(s.Volume)));
-
-            CreateMap<CashOutProcessedEvent, Cashout>()
-                .ForMember(x => x.Id, o => o.MapFrom(s => s.OperationId))
-                .ForMember(x => x.State, o => o.UseValue(HistoryState.Finished))
-                .ForMember(x => x.Volume, o => o.MapFrom(s => -Math.Abs(s.Volume)));
-
-            CreateMap<CashTransferProcessedEvent, IEnumerable<BaseHistoryRecord>>().ConvertUsing<CashTransferConverter>();
-
             CreateMap<TradeModel, Trade>();
 
             CreateMap<OrderModel, Order>();
