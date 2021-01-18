@@ -7,21 +7,16 @@ namespace Antares.Job.History
     public class ShutdownManager : IShutdownManager
     {
         private readonly ExecutionQueueReader _executionQueueReader;
-        private readonly OrderEventQueueReader _orderEventQueueReader;
 
         public ShutdownManager(
-            ExecutionQueueReader executionQueueReader,
-            OrderEventQueueReader orderEventQueueReader
-            )
+            ExecutionQueueReader executionQueueReader)
         {
             _executionQueueReader = executionQueueReader;
-            _orderEventQueueReader = orderEventQueueReader;
         }
 
         public Task StopAsync()
         {
             _executionQueueReader.Stop();
-            _orderEventQueueReader.Stop();
 
             return Task.CompletedTask;
         }

@@ -6,6 +6,18 @@ HistoryService:
             settings-key: HistoryService-LogsConnString
             types:
                 - AzureTableStorage
+    MatchingEngineRabbit:
+        ConnectionString:
+            settings-key: MatchingEngineRabbitMqConnectionString
+            types:
+                - RabbitMq
+        AlternativeConnectionString:
+            settings-key: AlternateMatchingEngineRabbitMqConnectionString
+            types:
+                - RabbitMq
+                - Optional
+        Exchange:
+            settings-key: MatchingEngineSpotEventsExchange
     Cqrs:
         RabbitConnString:
             settings-key: CqrsRabbitConnString

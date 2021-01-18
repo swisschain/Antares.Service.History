@@ -2,49 +2,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Antares.Job.History.RabbitSubscribers.Events;
-using Antares.Service.History.Core.Domain.History;
-using Antares.Service.History.Core.Domain.Orders;
-using AutoMapper;
+using Antares.Service.History.Core.Settings;
 using Common;
 using Lykke.Common.Log;
+using Lykke.MatchingEngine.Connector.Models.Events;
 using Lykke.RabbitMqBroker.Subscriber;
-using MoreLinq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Antares.Job.History.Workflow.ExecutionProcessing
 {
-    public class ExecutionQueueReader : BaseBatchQueueReader<IEnumerable<Order>>
+    public class ExecutionQueueReader : BaseBatchQueueReader<ExecutionEvent>
     {
-        private const int TradesBulkSize = 5000;
-
-        private readonly IHistoryRecordsRepository _historyRecordsRepository;
-        private readonly IOrdersRepository _ordersRepository;
+        private readonly RabbitMqSettings _rabbitMqSettings;
+        private readonly ExecutionEventHandler _executionEventHandler;
 
         public ExecutionQueueReader(
             ILogFactory logFactory,
             string connectionString,
-            IHistoryRecordsRepository historyRecordsRepository,
-            IOrdersRepository ordersRepository,
             int prefetchCount,
             int batchCount,
-            IReadOnlyList<string> walletIds)
+            IReadOnlyList<string> walletIds,
+            RabbitMqSettings rabbitMqSettings,
+            ExecutionEventHandler executionEventHandler)
             : base(logFactory, connectionString, prefetchCount, batchCount, walletIds)
         {
-            _historyRecordsRepository = historyRecordsRepository;
-            _ordersRepository = ordersRepository;
+            _rabbitMqSettings = rabbitMqSettings;
+            _executionEventHandler = executionEventHandler;
         }
 
-        protected override string ExchangeName => $"lykke.{PostProcessingBoundedContext.Name}.events.exchange";
+        protected override string ExchangeName => _rabbitMqSettings.Exchange;
 
-        protected override string QueueName => $"lykke.history.queue.{PostProcessingBoundedContext.Name}.events.execution-reader";
+        protected override string QueueName => 
+            $"lykke.spot.matching.engine.out.events.antares-history.{Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.Order}";
 
-        protected override string[] RoutingKeys => new[] { nameof(ExecutionProcessedEvent) };
+        protected override string[] RoutingKeys => new[] { ((int)Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.Order).ToString() };
 
         protected override EventHandler<BasicDeliverEventArgs> CreateOnMessageReceivedEventHandler(IModel channel)
         {
-            var deserializer = new ProtobufMessageDeserializer<ExecutionProcessedEvent>();
+            var deserializer = new ProtobufMessageDeserializer<ExecutionEvent>();
 
             void OnMessageReceived(object o, BasicDeliverEventArgs basicDeliverEventArgs)
             {
@@ -52,14 +48,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                 {
                     var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
 
-                    var orders = Mapper.Map<IEnumerable<Order>>(message).ToList();
-
-                    foreach (var order in orders.Where(x => WalletIds.Contains(x.WalletId.ToString())))
-                    {
-                        Log.Info("Order from ME (ExecutionProcessedEvent)", context: $"order: {new {order.Id, order.Status, order.SequenceNumber}.ToJson()}");
-                    }
-
-                    Queue.Enqueue(new CustomQueueItem<IEnumerable<Order>>(orders,
+                    Queue.Enqueue(new CustomQueueItem<ExecutionEvent>(message,
                         basicDeliverEventArgs.DeliveryTag, channel));
                 }
                 catch (Exception e)
@@ -73,24 +62,9 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
             return OnMessageReceived;
         }
 
-        protected override async Task ProcessBatch(IList<CustomQueueItem<IEnumerable<Order>>> batch)
+        protected override async Task ProcessBatch(IList<CustomQueueItem<ExecutionEvent>> batch)
         {
-            var orders = batch.SelectMany(x => x.Value).ToList();
-            var batchId = Guid.NewGuid().ToString();
-
-            foreach (var order in orders.Where(x => WalletIds.Contains(x.WalletId.ToString())))
-            {
-                Log.Info("Saving order (ProcessBatch)", context: $"order: {new {order.Id, order.Status, order.SequenceNumber, batchId}.ToJson()}");
-            }
-
-            await _ordersRepository.UpsertBulkAsync(orders);
-
-            var trades = orders.SelectMany(x => x.Trades);
-
-            var batched = trades.Batch(TradesBulkSize).ToList();
-
-            foreach (var tradesBatch in batched)
-                await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
+            await _executionEventHandler.HandleAsync(batch.Select(x => x.Value).ToArray());
         }
 
         protected override void LogQueue()
@@ -99,7 +73,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
             {
                 if (Queue.TryDequeue(out var item))
                 {
-                    var orders = item.Value.Select(x => new {x.Id, x.Status, x.SequenceNumber}).ToList()
+                    var orders = item.Value.Orders.Select(x => new {x.Id, x.Status, item.Value.Header.SequenceNumber}).ToList()
                         .ToJson();
 
                     Log.Info("Orders in queue on shutdown", context: $"orders: {orders}");

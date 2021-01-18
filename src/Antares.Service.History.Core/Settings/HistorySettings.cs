@@ -12,6 +12,12 @@ namespace Antares.Service.History.Core.Settings
 
         public CqrsSettings Cqrs { get; set; }
 
+        public RabbitMqSettings MatchingEngineRabbit
+        {
+            get;
+            set;
+        }
+
         [Optional]
         public int RabbitPrefetchCount { get; set; } = 500;
 

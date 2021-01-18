@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Antares.Job.History.RabbitSubscribers;
 using Antares.Job.History.Workflow.ExecutionProcessing;
 using Antares.Job.History.Workflow.Handlers;
 using Antares.Job.History.Workflow.Projections;
@@ -39,6 +40,18 @@ namespace Antares.Job.History.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder
+                .RegisterType<ExecutionEventHandler>()
+                .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit))
+                .WithParameter(TypedParameter.From(_settings.WalletIdsToLog))
+                .SingleInstance();
+
+            builder.RegisterType<MeRabbitSubscriber>()
+                .As<IStartable>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit))
+                .WithParameter(TypedParameter.From(_settings.WalletIdsToLog));
+
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>()
                 .SingleInstance();
 
@@ -54,13 +67,7 @@ namespace Antares.Job.History.Modules
             builder.RegisterType<ExecutionQueueReader>()
                 .WithParameter(TypedParameter.From(_settings.Cqrs.RabbitConnString))
                 .WithParameter(TypedParameter.From(_settings.WalletIdsToLog))
-                .WithParameter(new NamedParameter("prefetchCount", _settings.RabbitPrefetchCount))
-                .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
-                .SingleInstance();
-
-            builder.RegisterType<OrderEventQueueReader>()
-                .WithParameter(TypedParameter.From(_settings.Cqrs.RabbitConnString))
-                .WithParameter(TypedParameter.From(_settings.WalletIdsToLog))
+                .WithParameter(TypedParameter.From(_settings.))
                 .WithParameter(new NamedParameter("prefetchCount", _settings.RabbitPrefetchCount))
                 .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
                 .SingleInstance();

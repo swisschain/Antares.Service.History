@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Antares.Job.History.RabbitSubscribers.Events;
 using Antares.Service.History.Core.Domain.Enums;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Settings;
 using Autofac;
-using AutoMapper;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
@@ -16,15 +14,7 @@ using Lykke.Cqrs;
 using Lykke.MatchingEngine.Connector.Models.Events;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Deduplication;
-using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using OrderModel = Antares.Job.History.RabbitSubscribers.Models.OrderModel;
-using OrderSide = Antares.Job.History.RabbitSubscribers.Models.Enums.OrderSide;
-using OrderStatus = Antares.Job.History.RabbitSubscribers.Models.Enums.OrderStatus;
-using OrderType = Antares.Job.History.RabbitSubscribers.Models.Enums.OrderType;
-using TradeModel = Antares.Job.History.RabbitSubscribers.Models.TradeModel;
-using TradeRole = Antares.Job.History.RabbitSubscribers.Models.Enums.TradeRole;
 using Utils = Antares.Service.History.Core.Utils;
 
 namespace Antares.Job.History.RabbitSubscribers
@@ -62,13 +52,6 @@ namespace Antares.Job.History.RabbitSubscribers
             _deduplicator = deduplicator ?? throw new ArgumentNullException(nameof(deduplicator));
             _historyRecordsRepository = historyRecordsRepository;
             _walletIds = walletIds;
-            var rabbitPublisher = new RabbitMqPublisher<ExecutionProcessedEvent>(_logFactory, new RabbitMqSubscriptionSettings()
-            {
-                ConnectionString = cqrsSettings.RabbitConnString,
-                ExchangeName = _rabbitMqSettings.Exchange,
-                RoutingKey = nameof(ExecutionProcessedEvent),
-                IsDurable = QueueDurable
-            });
         }
 
         public void Start()
@@ -76,7 +59,6 @@ namespace Antares.Job.History.RabbitSubscribers
             _subscribers.Add(Subscribe<CashInEvent>(Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.CashIn, ProcessMessageAsync));
             _subscribers.Add(Subscribe<CashOutEvent>(Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.CashOut, ProcessMessageAsync));
             _subscribers.Add(Subscribe<CashTransferEvent>(Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.CashTransfer, ProcessMessageAsync));
-            _subscribers.Add(Subscribe<ExecutionEvent>(Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.Order, ProcessMessageAsync));
         }
 
         private RabbitMqSubscriber<T> Subscribe<T>(Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType messageType, Func<T, Task> func)
@@ -195,138 +177,6 @@ namespace Antares.Job.History.RabbitSubscribers
                     {
                         id = operationId
                     });
-        }
-
-        private Task ProcessMessageAsync(ExecutionEvent message)
-        {
-            var orders = message.Orders.Select(x =>
-            {
-                var order = new Antares.Service.History.Core.Domain.Orders.Order
-                {
-                    Id = Guid.Parse(x.ExternalId),
-                    WalletId = Guid.Parse(x.WalletId),
-                    Volume = decimal.Parse(x.Volume),
-                    AssetPairId = x.AssetPairId,
-                    CreateDt = x.CreatedAt,
-                    LowerLimitPrice = ParseNullabe(x.LowerLimitPrice),
-                    LowerPrice = ParseNullabe(x.LowerPrice),
-                    MatchDt = x.LastMatchTime,
-                    MatchingId = Guid.Parse(x.Id),
-                    Price = ParseNullabe(x.Price),
-                    RegisterDt = x.Registered,
-                    RejectReason = x.RejectReason,
-                    RemainingVolume = ParseNullabe(x.RemainingVolume) ?? 0m,
-                    Side = (Antares.Service.History.Core.Domain.Enums.OrderSide)(int)x.Side,
-                    Status = (Antares.Service.History.Core.Domain.Enums.OrderStatus)(int)x.Status,
-                    StatusDt = x.StatusDate,
-                    Straight = x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.Limit ||
-                               x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.StopLimit || x.Straight,
-                    SequenceNumber = message.Header.SequenceNumber,
-                    Type = (Antares.Service.History.Core.Domain.Enums.OrderType)(int)x.OrderType,
-                    UpperLimitPrice = ParseNullabe(x.UpperLimitPrice),
-                    UpperPrice = ParseNullabe(x.UpperPrice),
-                };
-
-                order.Trades = x.Trades?.Select(t => new Antares.Service.History.Core.Domain.History.Trade()
-                {
-                    Id = Guid.Parse(t.TradeId),
-                    WalletId = Guid.Parse(x.WalletId),
-                    AssetPairId = x.AssetPairId,
-                    BaseAssetId = t.BaseAssetId,
-                    BaseVolume = decimal.Parse(t.BaseVolume),
-                    Price = decimal.Parse(t.Price),
-                    Timestamp = t.Timestamp,
-                    QuotingAssetId = t.QuotingAssetId,
-                    QuotingVolume = decimal.Parse(t.QuotingVolume),
-                    Index = t.Index,
-                    Role = (Antares.Service.History.Core.Domain.Enums.TradeRole)(int)t.Role,
-                    FeeSize = ParseNullabe(t.Fees?.FirstOrDefault()?.Volume),
-                    FeeAssetId = t.Fees?.FirstOrDefault()?.AssetId,
-                    OrderId = order.Id
-                    //OppositeWalletId = Guid.Parse(t.OppositeWalletId),
-                }).ToList();
-
-                return order;
-            }).ToList();
-
-            foreach (var order in orders.Where(x => _walletIds.Contains(x.WalletId.ToString())))
-            {
-                _log.Info("Order from ME", $"order: {new { order.Id, order.Status, message.Header.SequenceNumber }.ToJson()}");
-            }
-
-            var limitOrders = orders.Where(x => x.Type == Antares.Service.History.Core.Domain.Enums.OrderType.Limit ||
-                                                x.Type == Antares.Service.History.Core.Domain.Enums.OrderType.StopLimit).ToList();
-            var historyOrders = new List<OrderEvent>(limitOrders.Count);
-
-
-
-            foreach (var order in limitOrders)
-            {
-                switch (order.Status)
-                {
-                    case Service.History.Core.Domain.Enums.OrderStatus.Cancelled:
-                        {
-                            var orderEvent = new OrderEvent()
-                            {
-                                OrderId = order.Id,
-                                Status = order.Status,
-                                AssetPairId = order.AssetPairId,
-                                Price = order.Price ?? 0,
-                                Timestamp = order.StatusDt,
-                                Volume = order.Volume,
-                                WalletId = order.WalletId,
-                                Id = Utils.IncrementGuid(order.Id, (int)Service.History.Core.Domain.Enums.OrderStatus.Cancelled)
-                            };
-
-                            historyOrders.Add(orderEvent);
-
-                            break;
-                        }
-                    case Service.History.Core.Domain.Enums.OrderStatus.Placed:
-                    {
-                        var orderEvent = new OrderEvent()
-                        {
-                            OrderId = order.Id,
-                            Status = order.Status,
-                            AssetPairId = order.AssetPairId,
-                            Price = order.Price ?? 0,
-                            Timestamp = order.CreateDt,
-                            Volume = order.Volume,
-                            WalletId = order.WalletId,
-                            Id = Utils.IncrementGuid(order.Id, (int)Service.History.Core.Domain.Enums.OrderStatus.Placed)
-                        };
-
-                        historyOrders.Add(orderEvent);
-
-                        break;
-                    }
-                    case Service.History.Core.Domain.Enums.OrderStatus.Matched:
-                    case Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched:
-                    {
-                        if (!order.Trades.Any(t => t.Role == Service.History.Core.Domain.Enums.TradeRole.Taker))
-                            break;
-                        var orderEvent = new OrderEvent()
-                        {
-                            OrderId = order.Id,
-                            Status = Service.History.Core.Domain.Enums.OrderStatus.Placed,
-                            AssetPairId = order.AssetPairId,
-                            Price = order.Price ?? 0,
-                            Timestamp = order.CreateDt,
-                            Volume = order.Volume,
-                            WalletId = order.WalletId,
-                            Id = Utils.IncrementGuid(order.Id, (int)Service.History.Core.Domain.Enums.OrderStatus.Placed)
-                        };
-
-                        historyOrders.Add(orderEvent);
-
-                        break;
-                    }
-                    default:
-                        continue;
-                }
-            }
-
-            return Task.CompletedTask;
         }
 
         private decimal? ParseNullabe(string value)

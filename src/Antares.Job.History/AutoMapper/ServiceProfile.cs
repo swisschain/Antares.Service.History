@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using Antares.Job.History.RabbitSubscribers.Events;
 using Antares.Service.History.Contracts.Cqrs.Commands;
 using Antares.Service.History.Contracts.History;
-using Antares.Service.History.Core;
 using Antares.Service.History.Core.Domain.Enums;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
@@ -20,17 +17,6 @@ namespace Antares.Job.History.AutoMapper
             CreateMap<TradeModel, Trade>();
 
             CreateMap<OrderModel, Order>();
-
-            CreateMap<ExecutionProcessedEvent, IEnumerable<Order>>().ConvertUsing<ExecutionConverter>();
-
-            CreateMap<OrderPlacedEvent, OrderEvent>()
-                .ForMember(x => x.Status, o => o.UseValue(OrderStatus.Placed))
-                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)OrderStatus.Placed)))
-                .ForMember(x => x.Timestamp, o => o.MapFrom(s => s.CreateDt));
-
-            CreateMap<OrderCancelledEvent, OrderEvent>()
-                .ForMember(x => x.Status, o => o.UseValue(OrderStatus.Cancelled))
-                .ForMember(x => x.Id, o => o.MapFrom(s => Utils.IncrementGuid(s.OrderId, (int)OrderStatus.Cancelled)));
 
             CreateMap<CreateForwardCashinCommand, Cashin>()
                 .ForMember(x => x.Id, o => o.MapFrom(s => s.OperationId))
