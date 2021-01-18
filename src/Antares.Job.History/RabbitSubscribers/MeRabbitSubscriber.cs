@@ -24,12 +24,9 @@ namespace Antares.Job.History.RabbitSubscribers
     {
         [NotNull] private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _rabbitMqSettings;
-        [NotNull] private readonly CqrsSettings _cqrsSettings;
-        private readonly ICqrsEngine _cqrsEngine;
         private readonly List<IStopable> _subscribers = new List<IStopable>();
         private readonly IDeduplicator _deduplicator;
         private readonly IHistoryRecordsRepository _historyRecordsRepository;
-        private readonly IReadOnlyList<string> _walletIds;
         private readonly ILog _log;
 
         private const string QueueName = "lykke.spot.matching.engine.out.events.antares-history";
@@ -38,20 +35,14 @@ namespace Antares.Job.History.RabbitSubscribers
         public MeRabbitSubscriber(
             [NotNull] ILogFactory logFactory,
             [NotNull] RabbitMqSettings rabbitMqSettings,
-            [NotNull] CqrsSettings cqrsSettings,
-            [NotNull] ICqrsEngine cqrsEngine,
             [NotNull] IDeduplicator deduplicator,
-            IHistoryRecordsRepository historyRecordsRepository,
-            IReadOnlyList<string> walletIds)
+            IHistoryRecordsRepository historyRecordsRepository)
         {
             _logFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
             _log = _logFactory.CreateLog(this);
             _rabbitMqSettings = rabbitMqSettings ?? throw new ArgumentNullException(nameof(rabbitMqSettings));
-            _cqrsSettings = cqrsSettings ?? throw new ArgumentNullException(nameof(cqrsSettings));
-            _cqrsEngine = cqrsEngine ?? throw new ArgumentNullException(nameof(cqrsEngine));
             _deduplicator = deduplicator ?? throw new ArgumentNullException(nameof(deduplicator));
             _historyRecordsRepository = historyRecordsRepository;
-            _walletIds = walletIds;
         }
 
         public void Start()

@@ -24,6 +24,7 @@ using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
+using Lykke.RabbitMqBroker.Deduplication;
 using Lykke.SettingsReader;
 using RabbitMQ.Client;
 
@@ -40,6 +41,10 @@ namespace Antares.Job.History.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<InMemoryDeduplcator>()
+                .As<IDeduplicator>()
+                .SingleInstance();
+
             builder
                 .RegisterType<ExecutionEventHandler>()
                 .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit))
@@ -49,8 +54,7 @@ namespace Antares.Job.History.Modules
             builder.RegisterType<MeRabbitSubscriber>()
                 .As<IStartable>()
                 .SingleInstance()
-                .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit))
-                .WithParameter(TypedParameter.From(_settings.WalletIdsToLog));
+                .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit));
 
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>()
                 .SingleInstance();
@@ -65,9 +69,8 @@ namespace Antares.Job.History.Modules
             builder.RegisterType<ShutdownManager>().As<IShutdownManager>();
 
             builder.RegisterType<ExecutionQueueReader>()
-                .WithParameter(TypedParameter.From(_settings.Cqrs.RabbitConnString))
                 .WithParameter(TypedParameter.From(_settings.WalletIdsToLog))
-                .WithParameter(TypedParameter.From(_settings.))
+                .WithParameter(TypedParameter.From(_settings.MatchingEngineRabbit))
                 .WithParameter(new NamedParameter("prefetchCount", _settings.RabbitPrefetchCount))
                 .WithParameter(new NamedParameter("batchCount", _settings.PostgresOrdersBatchSize))
                 .SingleInstance();

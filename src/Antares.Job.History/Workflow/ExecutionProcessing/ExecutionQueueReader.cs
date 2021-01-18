@@ -19,13 +19,12 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
 
         public ExecutionQueueReader(
             ILogFactory logFactory,
-            string connectionString,
             int prefetchCount,
             int batchCount,
             IReadOnlyList<string> walletIds,
             RabbitMqSettings rabbitMqSettings,
             ExecutionEventHandler executionEventHandler)
-            : base(logFactory, connectionString, prefetchCount, batchCount, walletIds)
+            : base(logFactory, rabbitMqSettings.ConnectionString, prefetchCount, batchCount, walletIds)
         {
             _rabbitMqSettings = rabbitMqSettings;
             _executionEventHandler = executionEventHandler;

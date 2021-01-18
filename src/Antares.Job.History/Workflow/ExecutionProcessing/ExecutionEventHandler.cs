@@ -13,6 +13,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.MatchingEngine.Connector.Models.Events;
 using MoreLinq;
+using Trade = Antares.Service.History.Core.Domain.History.Trade;
 using Utils = Antares.Service.History.Core.Utils;
 
 namespace Antares.Job.History.Workflow.ExecutionProcessing
@@ -52,14 +53,20 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
 
             await _ordersRepository.UpsertBulkAsync(orders);
 
-            var trades = orders.SelectMany(x => x.Trades);
+            var trades = orders.SelectMany(x => x.Trades)?.ToArray();
 
-            var batched = trades.Batch(TradesBulkSize).ToList();
+            if (trades.Any())
+            {
+                var batched = trades.Batch(TradesBulkSize).ToArray();
 
-            foreach (var tradesBatch in batched)
-                await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
+                foreach (var tradesBatch in batched)
+                    await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
+            }
 
-            await _historyRecordsRepository.InsertBulkAsync(orderEvents);
+            {
+                foreach (var batch in orderEvents.Batch(TradesBulkSize))
+                    await _historyRecordsRepository.InsertBulkAsync(batch);
+            }
         }
 
         private (IReadOnlyCollection<Antares.Service.History.Core.Domain.Orders.Order> Orders, IReadOnlyCollection<OrderEvent> OrderEvent) 
@@ -93,7 +100,8 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                     UpperPrice = ParseNullabe(x.UpperPrice),
                 };
 
-                order.Trades = x.Trades?.Select(t => new Antares.Service.History.Core.Domain.History.Trade()
+                order.Trades = x.Trades == null ? Array.Empty<Antares.Service.History.Core.Domain.History.Trade>() :
+                    x.Trades.Select(t => new Antares.Service.History.Core.Domain.History.Trade()
                 {
                     Id = Guid.Parse(t.TradeId),
                     WalletId = Guid.Parse(x.WalletId),
@@ -110,7 +118,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                     FeeAssetId = t.Fees?.FirstOrDefault()?.AssetId,
                     OrderId = order.Id
                     //OppositeWalletId = Guid.Parse(t.OppositeWalletId),
-                }).ToList();
+                }).ToArray();
 
                 return order;
             }).ToList();

@@ -129,7 +129,7 @@ namespace Antares.Service.History.Tests
                 Straight = true,
                 Type = (OrderType) random.Next(0, 4),
                 WalletId = walletId,
-                Trades = Enumerable.Range(1, random.Next(1, 20)).Select(x => GetTrade()).ToList()
+                Trades = Enumerable.Range(1, random.Next(1, 20)).Select(x => GetTrade()).ToArray()
             };
 
             return orderModel;

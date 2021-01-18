@@ -47,7 +47,7 @@ namespace Antares.Service.History.Core.Domain.Orders
 
         public bool Straight { get; set; }
 
-        public List<Trade> Trades { get; set; } = new List<Trade>();
+        public Trade[] Trades { get; set; } = Array.Empty<Trade>();
 
         public long SequenceNumber { get; set; }
     }

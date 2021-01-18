@@ -4,7 +4,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "ENV_INFO": "home",
-        "SettingsUrl": "http://settingsv2.lykke-settings.svc.cluster.local/Home/RepositoryFile/79ab4c5c-fae6-480a-8742-d9b233addfd2/Lykke.Service.History",
+        "SettingsUrl": "http://settingsv2.lykke-settings.svc.cluster.local/Home/RepositoryFile/de1f7d42-e533-4127-8fa3-b691d47ce13a/Antares.Service.History",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
