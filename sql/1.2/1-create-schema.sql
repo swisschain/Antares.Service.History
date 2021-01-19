@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS history
+CREATE SCHEMA IF NOT EXISTS history;
 
 CREATE TABLE history.history (
     id uuid NOT NULL,
@@ -55,11 +55,3 @@ alter table history.orders alter column lower_price type numeric;
 alter table history.orders alter column upper_limit_price type numeric;
 alter table history.orders alter column upper_price type numeric;
 alter table history.history alter column volume type numeric;
-
-insert into history.history
-select * from public.history
-ON CONFLICT (id, wallet_id) DO NOTHING;
-
-insert into history.orders
-select * from public.orders
-ON CONFLICT (id) DO NOTHING;
