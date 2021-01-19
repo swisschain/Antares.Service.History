@@ -7,7 +7,7 @@ namespace Antares.Service.History.PostgresRepositories.Mappings
     {
         public static PostgreSQLCopyHelper<HistoryEntity> Generate()
         {
-            return new PostgreSQLCopyHelper<HistoryEntity>(Constants.HistoryTableName)
+            return new PostgreSQLCopyHelper<HistoryEntity>(Constants.HistorySchemaName, Constants.HistoryTableName)
                 .MapUUID("id", x => x.Id)
                 .MapUUID("wallet_id", x => x.WalletId)
                 .MapText("asset_id", x => x.AssetId)

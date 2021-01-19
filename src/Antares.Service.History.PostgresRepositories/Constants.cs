@@ -9,5 +9,7 @@
         public const string TempOrdersTableName = "temporders";
 
         public const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
+
+        public const string HistorySchemaName = "history";
     }
 }

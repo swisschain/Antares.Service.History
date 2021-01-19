@@ -23,25 +23,25 @@ namespace Antares.Service.History.PostgresRepositories.Repositories
         private readonly ConnectionFactory _connectionFactory;
 
         private readonly string _insertQuery = $@"
-insert into {Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
+insert into {Constants.HistorySchemaName}.{Constants.HistoryTableName}(id, wallet_id, asset_id, assetpair_id, volume, type, create_dt, context)
     values (@Id, @WalletId, @AssetId, @AssetPairId, @Volume, @Type, @Timestamp, @Context::jsonb)
 ON CONFLICT (id, wallet_id) DO NOTHING;
 ";
 
         private readonly string _deleteQuery = $@"
-delete from {Constants.HistoryTableName}
+delete from {Constants.HistorySchemaName}.{Constants.HistoryTableName}
 where id = @Id and wallet_id = @WalletId
 ";
 
         private readonly string _updateBlockchainHashQuery = $@"
-update {Constants.HistoryTableName}
+update {Constants.HistorySchemaName}.{Constants.HistoryTableName}
 set context = jsonb_set(coalesce(context, '{{}}'), '{{{
                 nameof(HistoryEntityContext.BlockchainHash)
             }}}', coalesce(to_jsonb(@Hash::text), jsonb 'null'))
 where id = @Id
 ";
 
-        private readonly string _tradesDateRangeQuery = $@"SELECT * FROM {Constants.HistoryTableName}
+        private readonly string _tradesDateRangeQuery = $@"SELECT * FROM {Constants.HistorySchemaName}.{Constants.HistoryTableName}
 WHERE type = {(int)HistoryType.Trade} AND create_dt >= '{{0}}' AND create_dt < '{{1}}' ORDER BY create_dt
 LIMIT {{2}} OFFSET {{3}}";
 

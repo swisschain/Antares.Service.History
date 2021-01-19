@@ -21,7 +21,7 @@ namespace Antares.Service.History.PostgresRepositories.Repositories
         private static readonly PostgreSQLCopyHelper<OrderEntity> BulkMapping;
 
         private readonly string _bulkUpsertQuery = $@"
-insert into {Constants.OrdersTableName}
+insert into {Constants.HistorySchemaName}.{Constants.OrdersTableName}
 select * from {Constants.TempOrdersTableName}
 ON CONFLICT (id) DO UPDATE
     set type = excluded.type,
@@ -38,17 +38,18 @@ ON CONFLICT (id) DO UPDATE
         upper_limit_price = excluded.upper_limit_price,
         upper_price = excluded.upper_price,
         sequence_number = excluded.sequence_number
-            where {Constants.OrdersTableName}.sequence_number < excluded.sequence_number";
+            where {Constants.HistorySchemaName}.{Constants.OrdersTableName}.sequence_number < excluded.sequence_number";
 
         private readonly ConnectionFactory _connectionFactory;
 
+        //Note: Temp tables are created in their own schema (for each session)
         private readonly string _createTempTableQuery = $@"
 create temp table if not exists {Constants.TempOrdersTableName} 
-(like {Constants.OrdersTableName})
+(like {Constants.HistorySchemaName}.{Constants.OrdersTableName})
 on commit drop";
 
         private readonly string _insertOrUpdateQuery = $@"
-insert into {Constants.OrdersTableName}(id, matching_id, wallet_id, assetpair_id, type, side, status, volume, price, 
+insert into {Constants.HistorySchemaName}.{Constants.OrdersTableName}(id, matching_id, wallet_id, assetpair_id, type, side, status, volume, price, 
                 create_dt, register_dt, status_dt, match_dt, remaining_volume, reject_reason, 
                 lower_limit_price, lower_price, upper_limit_price, upper_price, straight, sequence_number)
     values (@Id, @MatchingId, @WalletId, @AssetPairId, @Type, @Side, @Status, @Volume, @Price,
@@ -69,9 +70,9 @@ ON CONFLICT (id) DO UPDATE
         upper_limit_price = @UpperLimitPrice,
         upper_price = @UpperPrice,
         sequence_number = @SequenceNumber
-            where {Constants.OrdersTableName}.sequence_number < @SequenceNumber";
+            where {Constants.HistorySchemaName}.{Constants.OrdersTableName}.sequence_number < @SequenceNumber";
 
-        private readonly string _ordersDateRangeQuery = $@"SELECT * FROM {Constants.OrdersTableName}
+        private readonly string _ordersDateRangeQuery = $@"SELECT * FROM {Constants.HistorySchemaName}.{Constants.OrdersTableName}
 WHERE create_dt >= '{{0}}' AND create_dt < '{{1}}' ORDER BY create_dt
 LIMIT {{2}} OFFSET {{3}}";
 

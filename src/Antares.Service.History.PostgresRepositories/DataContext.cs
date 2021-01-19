@@ -18,10 +18,14 @@ namespace Antares.Service.History.PostgresRepositories
 
         internal virtual DbSet<OrderEntity> Orders { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasDefaultSchema(Constants.HistorySchemaName);
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ReplaceService<ICompositeMethodCallTranslator, CustomSqlMethodCallTranslator>();
-
             optionsBuilder.UseNpgsql(_connectionString);
         }
     }
