@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\client\Antares.Service.History.Contracts\Antares.Service.History.Contracts.csproj" />
+    <ProjectReference Include="..\..\client\Antares.Service.History.GrpcContract\Antares.Service.History.GrpcContract.csproj" />
     <ProjectReference Include="..\Antares.Service.History.Core\Antares.Service.History.Core.csproj" />
     <ProjectReference Include="..\Antares.Service.History.PostgresRepositories\Antares.Service.History.PostgresRepositories.csproj" />
   </ItemGroup>
