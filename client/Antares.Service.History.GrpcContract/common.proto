@@ -17,12 +17,9 @@ message PaginatedInt32Response {
   int32 offset = 1;
 
   int32 count = 2;
-
-  PaginationOrder order = 3;
 }
 
 message PaginationInt32 {
-  PaginationOrder order = 1;
 
   int32 offset = 2;
 
@@ -150,4 +147,5 @@ enum TradeType
 {
   BUY = 0;
   SELL = 1;
+  NONE = 2; 
 }

@@ -48,7 +48,7 @@ namespace Antares.Service.History
             (_lykkeOptions, _settings) = services.ConfigureServices<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
-                options.
+                
                 options.Logs = logs =>
                 {
                     logs.AzureTableName = "HistoryLog";

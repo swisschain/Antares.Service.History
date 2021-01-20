@@ -4,10 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Antares.Service.History.Core.Domain.History;
+using Antares.Service.History.Core.Domain.Orders;
 using Antares.Service.History.GrpcContract.Common;
+using Antares.Service.History.GrpcContract.Orders;
 using Google.Protobuf.WellKnownTypes;
 using HistoryType = Antares.Service.History.Core.Domain.Enums.HistoryType;
+using OrderSide = Antares.Service.History.Core.Domain.Enums.OrderSide;
 using OrderStatus = Antares.Service.History.Core.Domain.Enums.OrderStatus;
+using OrderType = Antares.Service.History.Core.Domain.Enums.OrderType;
 using TradeRole = Antares.Service.History.Core.Domain.Enums.TradeRole;
 
 namespace Antares.Service.History.GrpcServices.Mappers
@@ -114,6 +118,57 @@ namespace Antares.Service.History.GrpcServices.Mappers
             }
 
             return item;
+        }
+
+        public static OrderModel MapOrder(Order order)
+        {
+            return new OrderModel()
+            {
+                Volume = order.Volume,
+                AssetPairId = order.AssetPairId,
+                CreateDt = order.CreateDt.ToTimestamp(),
+                Id = order.Id.ToString(),
+                Type = order.Type switch
+                {
+                    OrderType.Unknown => GrpcContract.Orders.OrderType.UnknownType,
+                    OrderType.Market => GrpcContract.Orders.OrderType.Market,
+                    OrderType.Limit => GrpcContract.Orders.OrderType.Limit,
+                    OrderType.StopLimit => GrpcContract.Orders.OrderType.StopLimit,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                WalletId = order.WalletId.ToString(),
+                Status = order.Status switch
+                {
+                    OrderStatus.Unknown => GrpcContract.Common.OrderStatus.UnknownOrder,
+                    OrderStatus.Placed => GrpcContract.Common.OrderStatus.Placed,
+                    OrderStatus.PartiallyMatched => GrpcContract.Common.OrderStatus.PartiallyMatched,
+                    OrderStatus.Matched => GrpcContract.Common.OrderStatus.Matched,
+                    OrderStatus.Pending => GrpcContract.Common.OrderStatus.Pending,
+                    OrderStatus.Cancelled => GrpcContract.Common.OrderStatus.Cancelled,
+                    OrderStatus.Replaced => GrpcContract.Common.OrderStatus.Replaced,
+                    OrderStatus.Rejected => GrpcContract.Common.OrderStatus.Rejected,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                Price = order.Price,
+                LowerLimitPrice = order.LowerLimitPrice,
+                LowerPrice = order.LowerPrice,
+                MatchDt = order.MatchDt?.ToTimestamp(),
+                MatchingId = order.MatchingId.ToString(),
+                RegisterDt = order.RegisterDt.ToTimestamp(),
+                RejectReason = order.RejectReason,
+                RemainingVolume = order.RemainingVolume,
+                Side = order.Side switch
+                {
+                    OrderSide.Unknown => GrpcContract.Orders.OrderSide.Unknown,
+                    OrderSide.Buy => GrpcContract.Orders.OrderSide.Buy,
+                    OrderSide.Sell => GrpcContract.Orders.OrderSide.Sell,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                StatusDt = order.StatusDt.ToTimestamp(),
+                Straight = order.Straight,
+                UpperLimitPrice = order.UpperLimitPrice,
+                UpperPrice = order.UpperPrice
+            };
         }
     }
 }
