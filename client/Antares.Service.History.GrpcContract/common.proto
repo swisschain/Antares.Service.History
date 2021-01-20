@@ -13,18 +13,18 @@ enum PaginationOrder {
   DESC = 1;
 }
 
-message PaginatedInt64Response {
-  google.protobuf.Int64Value cursor = 1;
+message PaginatedInt32Response {
+  int32 offset = 1;
 
   int32 count = 2;
 
   PaginationOrder order = 3;
 }
 
-message PaginationInt64 {
+message PaginationInt32 {
   PaginationOrder order = 1;
 
-  google.protobuf.Int64Value cursor = 2;
+  int32 offset = 2;
 
   int32 limit = 3;
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.GrpcContract.Common;
 using Antares.Service.History.GrpcContract.History;
+using Antares.Service.History.GrpcServices.Mappers;
 using Grpc.Core;
 using HistoryType = Antares.Service.History.Core.Domain.Enums.HistoryType;
 
@@ -36,29 +37,36 @@ namespace Antares.Service.History.GrpcServices
             }).ToArray();
 
             var data = await _historyRecordsRepository.GetByWalletAsync(
-                walletId, mappedType,
-                offset,
-                limit,
-                assetPairId,
-                assetId,
-                from,
-                to);
+                Guid.Parse(request.WalletId),
+                mappedType,
+                request.Pagination.Offset,
+                request.Pagination.Limit,
+                request.AssetPairId,
+                request.AssetId,
+                request.From.ToDateTime(),
+                request.To.ToDateTime());
 
+            var mappedItems = GrpcMapper.Map(data);
             return new HistoryGetHistoryResponse()
             {
-                Items = { },
-                Pagination = new PaginatedInt64Response()
+                Items = { mappedItems },
+                Pagination = new PaginatedInt32Response()
                 {
-                    Count = ,
-                    Cursor = ,
-                    Order = 
+                    Count = mappedItems.Count,
+                    Offset = request.Pagination.Offset + mappedItems.Count,
+                    Order = request.Pagination.Order
                 }
             };
         }
 
-        public override Task<GetHistoryItemResponse> GetHistoryItem(GetHistoryItemRequest request, ServerCallContext context)
+        public override async Task<GetHistoryItemResponse> GetHistoryItem(GetHistoryItemRequest request, ServerCallContext context)
         {
-            return base.GetHistoryItem(request, context);
+            var item = await _historyRecordsRepository.GetAsync(Guid.Parse( request.Id), Guid.Parse(request.WalletId));
+
+            return new GetHistoryItemResponse()
+            {
+                Item = item != null ? GrpcMapper.Map(item): null
+            };
         }
     }
 }

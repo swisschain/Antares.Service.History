@@ -24,7 +24,7 @@ message HistoryGetHistoryRequest {
   repeated antares.service.history.common.HistoryType type = 2;
   google.protobuf.StringValue asset_id = 3;
   google.protobuf.StringValue asset_pair_id = 4;
-  antares.service.history.common.PaginationInt64 pagination = 5;
+  antares.service.history.common.PaginationInt32 pagination = 5;
   google.protobuf.Timestamp from = 6;
   google.protobuf.Timestamp to = 7;
 }
@@ -36,5 +36,5 @@ message GetHistoryItemResponse {
 message HistoryGetHistoryResponse {
   repeated antares.service.history.common.HistoryResponseItem items = 1;
 
-  antares.service.history.common.PaginatedInt64Response pagination = 2;
+  antares.service.history.common.PaginatedInt32Response pagination = 2;
 }
