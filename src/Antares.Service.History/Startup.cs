@@ -2,6 +2,7 @@
 using Antares.Sdk;
 using Antares.Service.History.AutoMapper;
 using Antares.Service.History.Core.Settings;
+using Antares.Service.History.GrpcServices;
 using Antares.Service.History.PostgresRepositories.Mappings;
 using Autofac;
 using AutoMapper;
@@ -47,7 +48,7 @@ namespace Antares.Service.History
             (_lykkeOptions, _settings) = services.ConfigureServices<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
-
+                options.
                 options.Logs = logs =>
                 {
                     logs.AzureTableName = "HistoryLog";
@@ -93,7 +94,13 @@ namespace Antares.Service.History
             app.UseLykkeConfiguration(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
-
+                options.RegisterEndpoints = builder =>
+                {
+                    builder.MapGrpcService<IsAliveService>();
+                    builder.MapGrpcService<HistoryService>();
+                    builder.MapGrpcService<OrderService>();
+                    builder.MapGrpcService<TradesService>();
+                };
                 // TODO: Configure additional middleware for eg authentication or maintenancemode checks
                 /*
                 options.WithMiddleware = x =>

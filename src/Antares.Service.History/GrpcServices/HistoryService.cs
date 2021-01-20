@@ -6,6 +6,7 @@ using Antares.Service.History.GrpcContract.Common;
 using Antares.Service.History.GrpcContract.History;
 using Antares.Service.History.GrpcServices.Mappers;
 using Grpc.Core;
+using GetHistoryItemResponse = Antares.Service.History.GrpcContract.History.GetHistoryItemResponse;
 using HistoryType = Antares.Service.History.Core.Domain.Enums.HistoryType;
 
 namespace Antares.Service.History.GrpcServices
