@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Swisschain.Sirius.Api.ApiClient</AssemblyName>
+    <AssemblyName>Antares.Service.History.GrpcClient</AssemblyName>
     <PackageId>Swisschain.Sirius.Api.ApiClient</PackageId>
-    <RootNamespace>Swisschain.Sirius.Api.ApiClient</RootNamespace>
+    <RootNamespace>Antares.Service.History.GrpcClient</RootNamespace>
     <Authors>Swisschain</Authors>
     <Product>Sirius</Product>
   </PropertyGroup>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Api.ApiContract\Api.ApiContract.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Antares.Service.History.GrpcContract\Antares.Service.History.GrpcContract.csproj" />
   </ItemGroup>
 
   <!--

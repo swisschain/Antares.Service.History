@@ -2,15 +2,13 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace Swisschain.Sirius.Api.ApiClient.Common
+namespace Antares.Service.History.GrpcClient.Common
 {
-    public class BaseGrpcClient : IDisposable
+    public abstract class BaseGrpcClient : IDisposable
     {
-        private readonly Channel _channel;
+        protected readonly Channel _channel;
 
-        protected CallInvoker CallInvoker { get; }
-        
-        protected BaseGrpcClient(string serverGrpcUrl, string apiKey)
+        protected BaseGrpcClient(string serverGrpcUrl)
         {
             var lowerCaseUrl = serverGrpcUrl.ToLowerInvariant();
 
@@ -34,12 +32,6 @@ namespace Swisschain.Sirius.Api.ApiClient.Common
             var credentials = isHttps ? new SslCredentials() : ChannelCredentials.Insecure;
 
             _channel = new Channel(correctedUrl, credentials);
-            
-            CallInvoker = _channel.Intercept(metadata =>
-            {
-                metadata.Add("Authorization", $"Bearer {apiKey}");
-                return metadata;
-            });
         }
 
         public void Dispose()
