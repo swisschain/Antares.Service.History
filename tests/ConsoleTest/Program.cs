@@ -59,7 +59,7 @@ namespace ConsoleTest
             var trades1 = await client.Trades.GetTradesByOrderIdAsync(new GetTradesByOrderIdRequest()
             {
                 WalletId = walletId,
-                Id = trades.Items.First().Id
+                Id = "504d9fae-8537-4357-8ef9-4c0c6e70bb24"
             });
         }
     }
