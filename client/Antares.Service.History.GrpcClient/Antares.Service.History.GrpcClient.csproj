@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Antares.Service.History.GrpcClient</AssemblyName>
-    <PackageId>Swisschain.Sirius.Api.ApiClient</PackageId>
+    <PackageId>Antares.Service.History.GrpcClient</PackageId>
     <RootNamespace>Antares.Service.History.GrpcClient</RootNamespace>
     <Authors>Swisschain</Authors>
     <Product>Antares</Product>
