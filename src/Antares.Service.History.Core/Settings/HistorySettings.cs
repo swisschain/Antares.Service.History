@@ -26,5 +26,8 @@ namespace Antares.Service.History.Core.Settings
 
         [Optional]
         public IReadOnlyList<string> WalletIdsToLog { get; set; } = Array.Empty<string>();
+
+        [Optional] 
+        public bool CqrsEnabled { get; set; } = false;
     }
 }

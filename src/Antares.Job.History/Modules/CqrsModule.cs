@@ -41,6 +41,8 @@ namespace Antares.Job.History.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterInstance(_settings).AsSelf();
+
             builder.RegisterType<InMemoryDeduplcator>()
                 .As<IDeduplicator>()
                 .SingleInstance();
@@ -98,11 +100,13 @@ namespace Antares.Job.History.Modules
                             }),
                         new RabbitMqTransportFactory(logFactory));
                     var cqrsEngine = CreateEngine(ctx, messagingEngine, logFactory);
-                    cqrsEngine.StartPublishers();
+                    
+                    if (_settings.CqrsEnabled)
+                        cqrsEngine.StartPublishers();
+
                     return cqrsEngine;
                 })
                 .As<ICqrsEngine>()
-                .AutoActivate()
                 .SingleInstance();
         }
 

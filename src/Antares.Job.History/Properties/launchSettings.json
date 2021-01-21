@@ -11,7 +11,7 @@
     "History local test settings": {
       "commandName": "Project",
       "environmentVariables": {
-        "SettingsUrl": "token_to_test_settings",
+        "SettingsUrl": "http://settingsv2.lykke-settings.svc.cluster.local/Home/RepositoryFile/c96b7a34-b21f-49b9-8b29-9c3cd395b584/Antares.Service.History",
         "ASPNETCORE_ENVIRONMENT": "Staging"
       }
     },
