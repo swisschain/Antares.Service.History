@@ -35,15 +35,17 @@ namespace Antares.Service.History.GrpcServices
             if (tradeType == TradeType.Sell)
                 onlyBuyTrades = false;
 
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
+
             var data = await _historyRecordsRepository
                 .GetTradesByWalletAsync(
                     Guid.Parse(request.WalletId), 
-                    request.Pagination.Offset,
-                    request.Pagination.Limit,
+                    pagination.Offset,
+                    pagination.Limit,
                     request.AssetPairId,
                     request.AssetId,
-                    request.From.ToDateTime(),
-                    request.To.ToDateTime(), 
+                    request.From?.ToDateTime(),
+                    request.To?.ToDateTime(), 
                     onlyBuyTrades);
 
             var items = data.Select(GrpcMapper.Map).ToArray();
@@ -53,7 +55,7 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = items.Length,
-                    Offset = request.Pagination.Offset + items.Length
+                    Offset = pagination.Offset + items.Length
                 },
                 Items = { items }
             };
@@ -61,11 +63,12 @@ namespace Antares.Service.History.GrpcServices
 
         public override async Task<GetTradesResponse> GetTradesByDates(GetTradesByDatesRequest request, ServerCallContext context)
         {
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
             var data = await _historyRecordsRepository.GetByDatesAsync(
                 request.From.ToDateTime(),
                 request.To.ToDateTime(),
-                request.Pagination.Offset,
-                request.Pagination.Limit);
+                pagination.Offset,
+                pagination.Limit);
 
             var items = data.Select(GrpcMapper.Map).ToArray();
 
@@ -74,7 +77,7 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = items.Length,
-                    Offset = request.Pagination.Offset + items.Length
+                    Offset = pagination.Offset + items.Length
                 },
                 Items = { items }
             };

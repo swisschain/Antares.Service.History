@@ -28,7 +28,7 @@ namespace Antares.Service.History.GrpcServices.Mappers
             var item = new HistoryResponseItem()
             {
                 Id = baseHistoryRecord.Id.ToString(),
-                Timestamp = baseHistoryRecord.Timestamp.ToTimestamp(),
+                Timestamp = baseHistoryRecord.Timestamp.ToUniversalTime().ToTimestamp(),
                 WalletId = baseHistoryRecord.WalletId.ToString(),
             };
 
@@ -169,6 +169,20 @@ namespace Antares.Service.History.GrpcServices.Mappers
                 UpperLimitPrice = order.UpperLimitPrice,
                 UpperPrice = order.UpperPrice
             };
+        }
+
+        public static PaginationInt32 EnsurePagination(PaginationInt32 paginationInt32)
+        {
+            if (paginationInt32 == null)
+            {
+                return new PaginationInt32()
+                {
+                    Limit = 1000,
+                    Offset = 0
+                };
+            }
+
+            return paginationInt32;
         }
     }
 }

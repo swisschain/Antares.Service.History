@@ -36,15 +36,18 @@ namespace Antares.Service.History.GrpcServices
                 _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
             }).ToArray();
 
+
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
+
             var data = await _historyRecordsRepository.GetByWalletAsync(
                 Guid.Parse(request.WalletId),
                 mappedType,
-                request.Pagination.Offset,
-                request.Pagination.Limit,
+                pagination.Offset,
+                pagination.Limit,
                 request.AssetPairId,
                 request.AssetId,
-                request.From.ToDateTime(),
-                request.To.ToDateTime());
+                request.From?.ToDateTime(),
+                request.To?.ToDateTime());
 
             var mappedItems = GrpcMapper.Map(data);
             return new HistoryGetHistoryResponse()
@@ -53,7 +56,7 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = mappedItems.Count,
-                    Offset = request.Pagination.Offset + mappedItems.Count,
+                    Offset = pagination.Offset + mappedItems.Count,
                 }
             };
         }

@@ -20,6 +20,7 @@ namespace Antares.Service.History.GrpcServices
 
         public override async Task<GetOrderListResponse> GetActiveOrders(GetActiveOrdersRequest request, ServerCallContext context)
         {
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
             var data = await _ordersRepository.GetOrdersAsync(
                 Guid.Parse(request.WalletId),
                 new[] { Antares.Service.History.Core.Domain.Enums.OrderType.Limit,
@@ -28,8 +29,8 @@ namespace Antares.Service.History.GrpcServices
                     Antares.Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched,
                     Antares.Service.History.Core.Domain.Enums.OrderStatus.Pending },
                 request.AssetPairId,
-                request.Pagination.Offset,
-                request.Pagination.Limit);
+                pagination.Offset,
+                pagination.Limit);
 
             var items = data.Select(x => GrpcMapper.MapOrder(x)).ToArray();
 
@@ -39,7 +40,7 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = items.Count(),
-                    Offset = request.Pagination.Offset + items.Length,
+                    Offset = pagination.Offset + items.Length,
                 }
             };
         }
@@ -88,13 +89,15 @@ namespace Antares.Service.History.GrpcServices
                 _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
             }).ToArray();
 
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
+
             var data = await _ordersRepository.GetOrdersAsync(
                 Guid.Parse(request.WalletId),
                 mappedType,
                 mappedStatus,
                 request.AssetPairId,
-                request.Pagination.Offset,
-                request.Pagination.Limit);
+                pagination.Offset,
+                pagination.Limit);
 
             var items = data.Select(GrpcMapper.MapOrder).ToArray();
 
@@ -104,18 +107,19 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = items.Length,
-                    Offset = request.Pagination.Offset + items.Length
+                    Offset = pagination.Offset + items.Length
                 }
             };
         }
 
         public override async Task<GetOrderListResponse> GetOrdersByDates(GetOrdersByDatesRequest request, ServerCallContext context)
         {
+            var pagination = GrpcMapper.EnsurePagination(request.Pagination);
             var data = await _ordersRepository.GetOrdersByDatesAsync(
                 request.From.ToDateTime(),
                 request.To.ToDateTime(),
-                request.Pagination.Offset,
-                request.Pagination.Limit);
+                pagination.Offset,
+                pagination.Limit);
 
             var items = data.Select(GrpcMapper.MapOrder).ToArray();
 
@@ -125,7 +129,7 @@ namespace Antares.Service.History.GrpcServices
                 Pagination = new PaginatedInt32Response()
                 {
                     Count = items.Length,
-                    Offset = request.Pagination.Offset + items.Length
+                    Offset = pagination.Offset + items.Length
                 }
             };
         }
