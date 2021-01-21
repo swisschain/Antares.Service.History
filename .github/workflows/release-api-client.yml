@@ -16,9 +16,7 @@ jobs:
       with:
         dotnet-version: 3.1.100
     - name: Build
-      run: dotnet build --configuration Release
-    - name: Test
-      run: dotnet test --no-build --configuration Release
+      run: dotnet build --configuration Release client/Antares.Service.History.GrpcClient/Antares.Service.History.GrpcClient.csproj
     - name: Create the package
       run: dotnet pack --configuration Release client/Antares.Service.History.GrpcClient /p:Version=${GITHUB_REF#refs/tags/api-client-}
     - name: Publish the package to GPR
