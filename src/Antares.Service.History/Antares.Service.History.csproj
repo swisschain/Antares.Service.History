@@ -22,7 +22,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antares.Sdk" Version="1.0.0" />
+    <PackageReference Include="Antares.Sdk" Version="1.1.0-beta.4" />
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.Bitcoin.Contracts" Version="1.2.1" />
     <PackageReference Include="Lykke.Cqrs" Version="9.0.1" />
@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\client\Antares.Service.History.Contracts\Antares.Service.History.Contracts.csproj" />
+    <ProjectReference Include="..\..\client\Antares.Service.History.GrpcContract\Antares.Service.History.GrpcContract.csproj" />
     <ProjectReference Include="..\Antares.Service.History.Core\Antares.Service.History.Core.csproj" />
     <ProjectReference Include="..\Antares.Service.History.PostgresRepositories\Antares.Service.History.PostgresRepositories.csproj" />
   </ItemGroup>
