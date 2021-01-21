@@ -6,18 +6,6 @@ HistoryService:
             settings-key: HistoryService-LogsConnString
             types:
                 - AzureTableStorage
-    MatchingEngineRabbit:
-        ConnectionString:
-            settings-key: MatchingEngineRabbitMqConnectionString
-            types:
-                - RabbitMq
-        AlternativeConnectionString:
-            settings-key: AlternateMatchingEngineRabbitMqConnectionString
-            types:
-                - RabbitMq
-                - Optional
-        Exchange:
-            settings-key: MatchingEngineSpotEventsExchange
     Cqrs:
         RabbitConnString:
             settings-key: CqrsRabbitConnString
@@ -34,6 +22,18 @@ HistoryService:
     WalletIdsToLog:
         settings-key: HistoryService-WalletIdsToLog
         types: [Optional, JsonArray]
+    MatchingEngineRabbit:
+        ConnectionString:
+            settings-key: MatchingEngineRabbitMqConnectionString
+            types:
+                - RabbitMq
+        AlternativeConnectionString:
+            settings-key: AlternateMatchingEngineRabbitMqConnectionString
+            types:
+                - RabbitMq
+                - Optional
+        Exchange:
+            settings-key: MatchingEngineSpotEventsExchange
 MonitoringServiceClient:
     MonitoringServiceUrl:
         settings-key: MonitoringServiceUrl
