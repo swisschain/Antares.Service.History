@@ -18,15 +18,15 @@ HistoryService:
                 - Optional
         Exchange:
             settings-key: MatchingEngineSpotEventsExchange
+    RabbitPrefetchCount:
+        settings-key: HistoryService-RabbitPrefetchCount
+        types:
+            - Optional
     Cqrs:
         RabbitConnString:
             settings-key: CqrsRabbitConnString
             types:
                 - RabbitMq
-    RabbitPrefetchCount:
-        settings-key: HistoryService-RabbitPrefetchCount
-        types:
-            - Optional
     PostgresOrdersBatchSize:
         settings-key: HistoryService-PostgresOrdersBatchSize
         types:
