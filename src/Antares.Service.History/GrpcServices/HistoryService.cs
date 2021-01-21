@@ -7,7 +7,6 @@ using Antares.Service.History.GrpcContract.History;
 using Antares.Service.History.GrpcServices.Mappers;
 using Grpc.Core;
 using GetHistoryItemResponse = Antares.Service.History.GrpcContract.History.GetHistoryItemResponse;
-using HistoryType = Antares.Service.History.Core.Domain.Enums.HistoryType;
 
 namespace Antares.Service.History.GrpcServices
 {
@@ -55,7 +54,6 @@ namespace Antares.Service.History.GrpcServices
                 {
                     Count = mappedItems.Count,
                     Offset = request.Pagination.Offset + mappedItems.Count,
-                    Order = request.Pagination.Order
                 }
             };
         }

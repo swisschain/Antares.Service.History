@@ -6,7 +6,7 @@
     <PackageId>Swisschain.Sirius.Api.ApiClient</PackageId>
     <RootNamespace>Antares.Service.History.GrpcClient</RootNamespace>
     <Authors>Swisschain</Authors>
-    <Product>Sirius</Product>
+    <Product>Antares</Product>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Antares.Service.History.GrpcContract\Antares.Service.History.GrpcContract.csproj" />
+    <ProjectReference Include="..\Antares.Service.History.GrpcContract\Antares.Service.History.GrpcContract.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <!--

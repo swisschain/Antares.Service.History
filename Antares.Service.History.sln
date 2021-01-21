@@ -38,6 +38,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antares.Service.History.Grp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antares.Service.History.GrpcClient", "client\Antares.Service.History.GrpcClient\Antares.Service.History.GrpcClient.csproj", "{E7309202-72EB-4ACB-8BD3-3E704CC433FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "tests\ConsoleTest\ConsoleTest.csproj", "{D8FED4D5-4643-44C6-860C-947A51FCE5F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +86,10 @@ Global
 		{E7309202-72EB-4ACB-8BD3-3E704CC433FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7309202-72EB-4ACB-8BD3-3E704CC433FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7309202-72EB-4ACB-8BD3-3E704CC433FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8FED4D5-4643-44C6-860C-947A51FCE5F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8FED4D5-4643-44C6-860C-947A51FCE5F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8FED4D5-4643-44C6-860C-947A51FCE5F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8FED4D5-4643-44C6-860C-947A51FCE5F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +103,7 @@ Global
 		{E4199193-31F4-401B-8464-96783A6195D2} = {CB89F731-A3D8-4AAB-8F8A-F1CCFEED51B0}
 		{FBE93CEC-068E-49C8-98EB-1157731401E7} = {CB89F731-A3D8-4AAB-8F8A-F1CCFEED51B0}
 		{E7309202-72EB-4ACB-8BD3-3E704CC433FB} = {CB89F731-A3D8-4AAB-8F8A-F1CCFEED51B0}
+		{D8FED4D5-4643-44C6-860C-947A51FCE5F2} = {8F9036B1-5106-4C69-B2D2-B78EE52687A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EB6C0EF4-AA6A-444D-8603-3669F73A58BC}
