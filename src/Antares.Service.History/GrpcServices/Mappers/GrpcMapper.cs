@@ -126,7 +126,7 @@ namespace Antares.Service.History.GrpcServices.Mappers
             {
                 Volume = order.Volume,
                 AssetPairId = order.AssetPairId,
-                CreateDt = order.CreateDt.ToTimestamp(),
+                CreateDt = order.CreateDt.ToUniversalTime().ToTimestamp(),
                 Id = order.Id.ToString(),
                 Type = order.Type switch
                 {
@@ -152,9 +152,9 @@ namespace Antares.Service.History.GrpcServices.Mappers
                 Price = order.Price,
                 LowerLimitPrice = order.LowerLimitPrice,
                 LowerPrice = order.LowerPrice,
-                MatchDt = order.MatchDt?.ToTimestamp(),
+                MatchDt = order.MatchDt?.ToUniversalTime().ToTimestamp(),
                 MatchingId = order.MatchingId.ToString(),
-                RegisterDt = order.RegisterDt.ToTimestamp(),
+                RegisterDt = order.RegisterDt.ToUniversalTime().ToTimestamp(),
                 RejectReason = order.RejectReason,
                 RemainingVolume = order.RemainingVolume,
                 Side = order.Side switch
@@ -164,7 +164,7 @@ namespace Antares.Service.History.GrpcServices.Mappers
                     OrderSide.Sell => GrpcContract.Orders.OrderSide.Sell,
                     _ => throw new ArgumentOutOfRangeException()
                 },
-                StatusDt = order.StatusDt.ToTimestamp(),
+                StatusDt = order.StatusDt.ToUniversalTime().ToTimestamp(),
                 Straight = order.Straight,
                 UpperLimitPrice = order.UpperLimitPrice,
                 UpperPrice = order.UpperPrice
