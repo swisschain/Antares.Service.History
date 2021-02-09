@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Antares.Service.History.Core;
 using Antares.Service.History.Core.Domain.History;
 using Antares.Service.History.Core.Domain.Orders;
-using Antares.Service.History.Core.Settings;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.MatchingEngine.Connector.Models.Events;
 using MoreLinq;
-using Trade = Antares.Service.History.Core.Domain.History.Trade;
 using Utils = Antares.Service.History.Core.Utils;
 
 namespace Antares.Job.History.Workflow.ExecutionProcessing
@@ -63,65 +59,76 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                     await _historyRecordsRepository.InsertBulkAsync(tradesBatch);
             }
 
-            {
-                foreach (var batch in orderEvents.Batch(TradesBulkSize))
-                    await _historyRecordsRepository.InsertBulkAsync(batch);
-            }
+            foreach (var batch in orderEvents.Batch(TradesBulkSize))
+                await _historyRecordsRepository.InsertBulkAsync(batch);
         }
 
-        private (IReadOnlyCollection<Antares.Service.History.Core.Domain.Orders.Order> Orders, IReadOnlyCollection<OrderEvent> OrderEvent) 
+        private (IReadOnlyCollection<Antares.Service.History.Core.Domain.Orders.Order> Orders, IReadOnlyCollection<OrderEvent> OrderEvent)
             Map(ExecutionEvent executionEvent)
         {
-            var orders = executionEvent.Orders.Select(x =>
+            var orders = new List<Antares.Service.History.Core.Domain.Orders.Order>();
+
+            foreach (var x in executionEvent.Orders)
             {
-                var order = new Antares.Service.History.Core.Domain.Orders.Order
-                {
-                    Id = Guid.Parse(x.ExternalId),
-                    WalletId = Guid.Parse(x.WalletId),
-                    Volume = decimal.Parse(x.Volume),
-                    AssetPairId = x.AssetPairId,
-                    CreateDt = x.CreatedAt,
-                    LowerLimitPrice = ParseNullabe(x.LowerLimitPrice),
-                    LowerPrice = ParseNullabe(x.LowerPrice),
-                    MatchDt = x.LastMatchTime,
-                    MatchingId = Guid.Parse(x.Id),
-                    Price = ParseNullabe(x.Price),
-                    RegisterDt = x.Registered,
-                    RejectReason = x.RejectReason,
-                    RemainingVolume = ParseNullabe(x.RemainingVolume) ?? 0m,
-                    Side = (Antares.Service.History.Core.Domain.Enums.OrderSide)(int)x.Side,
-                    Status = (Antares.Service.History.Core.Domain.Enums.OrderStatus)(int)x.Status,
-                    StatusDt = x.StatusDate,
-                    Straight = x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.Limit ||
-                               x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.StopLimit || x.Straight,
-                    SequenceNumber = executionEvent.Header.SequenceNumber,
-                    Type = (Antares.Service.History.Core.Domain.Enums.OrderType)(int)x.OrderType,
-                    UpperLimitPrice = ParseNullabe(x.UpperLimitPrice),
-                    UpperPrice = ParseNullabe(x.UpperPrice),
-                };
+                Antares.Service.History.Core.Domain.Orders.Order order;
 
-                order.Trades = x.Trades == null ? Array.Empty<Antares.Service.History.Core.Domain.History.Trade>() :
-                    x.Trades.Select(t => new Antares.Service.History.Core.Domain.History.Trade()
+                try
                 {
-                    Id = Guid.Parse(t.TradeId),
-                    WalletId = Guid.Parse(x.WalletId),
-                    AssetPairId = x.AssetPairId,
-                    BaseAssetId = t.BaseAssetId,
-                    BaseVolume = decimal.Parse(t.BaseVolume),
-                    Price = decimal.Parse(t.Price),
-                    Timestamp = t.Timestamp,
-                    QuotingAssetId = t.QuotingAssetId,
-                    QuotingVolume = decimal.Parse(t.QuotingVolume),
-                    Index = t.Index,
-                    Role = (Antares.Service.History.Core.Domain.Enums.TradeRole)(int)t.Role,
-                    FeeSize = ParseNullabe(t.Fees?.FirstOrDefault()?.Volume),
-                    FeeAssetId = t.Fees?.FirstOrDefault()?.AssetId,
-                    OrderId = order.Id
-                    //OppositeWalletId = Guid.Parse(t.OppositeWalletId),
-                }).ToArray();
+                    order = new Antares.Service.History.Core.Domain.Orders.Order
+                    {
+                        Id = Guid.Parse(x.ExternalId),
+                        WalletId = Guid.Parse(x.WalletId),
+                        Volume = decimal.Parse(x.Volume),
+                        AssetPairId = x.AssetPairId,
+                        CreateDt = x.CreatedAt,
+                        LowerLimitPrice = ParseNullabe(x.LowerLimitPrice),
+                        LowerPrice = ParseNullabe(x.LowerPrice),
+                        MatchDt = x.LastMatchTime,
+                        MatchingId = Guid.Parse(x.Id),
+                        Price = ParseNullabe(x.Price),
+                        RegisterDt = x.Registered,
+                        RejectReason = x.RejectReason,
+                        RemainingVolume = ParseNullabe(x.RemainingVolume) ?? 0m,
+                        Side = (Antares.Service.History.Core.Domain.Enums.OrderSide) (int) x.Side,
+                        Status = (Antares.Service.History.Core.Domain.Enums.OrderStatus) (int) x.Status,
+                        StatusDt = x.StatusDate,
+                        Straight = x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.Limit ||
+                                   x.OrderType == Lykke.MatchingEngine.Connector.Models.Events.OrderType.StopLimit ||
+                                   x.Straight,
+                        SequenceNumber = executionEvent.Header.SequenceNumber,
+                        Type = (Antares.Service.History.Core.Domain.Enums.OrderType) (int) x.OrderType,
+                        UpperLimitPrice = ParseNullabe(x.UpperLimitPrice),
+                        UpperPrice = ParseNullabe(x.UpperPrice),
+                    };
 
-                return order;
-            }).ToList();
+                    order.Trades = x.Trades == null
+                        ? Array.Empty<Antares.Service.History.Core.Domain.History.Trade>()
+                        : x.Trades.Select(t => new Antares.Service.History.Core.Domain.History.Trade()
+                        {
+                            Id = Guid.Parse(t.TradeId),
+                            WalletId = Guid.Parse(x.WalletId),
+                            AssetPairId = x.AssetPairId,
+                            BaseAssetId = t.BaseAssetId,
+                            BaseVolume = decimal.Parse(t.BaseVolume),
+                            Price = decimal.Parse(t.Price),
+                            Timestamp = t.Timestamp,
+                            QuotingAssetId = t.QuotingAssetId,
+                            QuotingVolume = decimal.Parse(t.QuotingVolume),
+                            Index = t.Index,
+                            Role = (Antares.Service.History.Core.Domain.Enums.TradeRole) (int) t.Role,
+                            FeeSize = ParseNullabe(t.Fees?.FirstOrDefault()?.Volume),
+                            FeeAssetId = t.Fees?.FirstOrDefault()?.AssetId,
+                            OrderId = order.Id
+                            //OppositeWalletId = Guid.Parse(t.OppositeWalletId),
+                        }).ToArray();
+
+                    orders.Add(order);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, "Can't convert execution event to order", context: $"execution event: {x.ToJson()}");
+                }
+            }
 
             foreach (var order in orders.Where(x => _walletIds.Contains(x.WalletId.ToString())))
             {
@@ -138,7 +145,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                 {
                     case Service.History.Core.Domain.Enums.OrderStatus.Cancelled:
                         {
-                            var orderEvent = new OrderEvent()
+                            var orderEvent = new OrderEvent
                             {
                                 OrderId = order.Id,
                                 Status = order.Status,
@@ -156,7 +163,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                         }
                     case Service.History.Core.Domain.Enums.OrderStatus.Placed:
                         {
-                            var orderEvent = new OrderEvent()
+                            var orderEvent = new OrderEvent
                             {
                                 OrderId = order.Id,
                                 Status = order.Status,

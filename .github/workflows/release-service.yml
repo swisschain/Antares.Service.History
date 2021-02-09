@@ -16,13 +16,13 @@ jobs:
       with:
         dotnet-version: 5.0.101
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release /p:AssemblyVersion=${GITHUB_REF#refs/tags/service-}
     - name: Test
       run: dotnet test --no-build --configuration Release
     - name: Publish API
-      run: dotnet publish --no-build ./src/Antares.Service.History/Antares.Service.History.csproj --output ./publish-api --configuration Release /p:AssemblyVersion=${GITHUB_REF#refs/tags/service-}
+      run: dotnet publish --no-build ./src/Antares.Service.History/Antares.Service.History.csproj --output ./publish-api --configuration Release
     - name: Publish worker
-      run: dotnet publish --no-build ./src/Antares.Job.History/Antares.Job.History.csproj --output ./publish-worker --configuration Release /p:AssemblyVersion=${GITHUB_REF#refs/tags/service-}
+      run: dotnet publish --no-build ./src/Antares.Job.History/Antares.Job.History.csproj --output ./publish-worker --configuration Release
     - name: Check API dir
       run: ls ./publish-api
     - name: Check worker dir
@@ -35,8 +35,8 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         workdir: ./publish-api
         # snapshot: true # use snapshot to push an additional image, which is tagged with {YEAR}{MONTH}{DAY}{HOUR}{MINUTE}{SECOND}{first 6 digits of the git sha}
-        tag_names: true  
-        tag_name_skip: service-    
+        tag_names: true
+        tag_name_skip: service-
     - name: Publish worker to Registry
       uses: swisschain/Publish-Docker-Github-Action@master
       with:
@@ -45,5 +45,5 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         workdir: ./publish-worker
         # snapshot: true # use snapshot to push an additional image, which is tagged with {YEAR}{MONTH}{DAY}{HOUR}{MINUTE}{SECOND}{first 6 digits of the git sha}
-        tag_names: true  
+        tag_names: true
         tag_name_skip: service-
