@@ -66,7 +66,7 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
         private (IReadOnlyCollection<Antares.Service.History.Core.Domain.Orders.Order> Orders, IReadOnlyCollection<OrderEvent> OrderEvent)
             Map(ExecutionEvent executionEvent)
         {
-            var orders = new List<Antares.Service.History.Core.Domain.Orders.Order>();
+            var orders = new List<Antares.Service.History.Core.Domain.Orders.Order>(executionEvent.Orders.Count);
 
             foreach (var x in executionEvent.Orders)
             {
