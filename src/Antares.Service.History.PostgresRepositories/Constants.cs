@@ -10,6 +10,6 @@
 
         public const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
-        public const string HistorySchemaName = "history";
+        public const string HistorySchemaName = "public";
     }
 }
