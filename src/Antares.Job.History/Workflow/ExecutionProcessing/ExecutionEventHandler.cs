@@ -42,12 +42,19 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
             var orderEvents = pairs.SelectMany(x => x.OrderEvent).ToList();
             var batchId = Guid.NewGuid().ToString();
 
+            bool needLog = orders.Any(x => _walletIds.Contains(x.WalletId.ToString()));
+
             foreach (var order in orders.Where(x => _walletIds.Contains(x.WalletId.ToString())))
             {
                 _log.Info("Saving order (ProcessBatch)", context: $"order: {new { order.Id, order.Status, order.SequenceNumber, batchId }.ToJson()}");
             }
 
             await _ordersRepository.UpsertBulkAsync(orders);
+
+            if (needLog)
+            {
+                _log.Info("Orders have been saved (ProcessBatch)", context: $"batchId: {batchId}");
+            }
 
             var trades = orders.SelectMany(x => x.Trades)?.ToArray();
 

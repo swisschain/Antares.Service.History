@@ -76,6 +76,8 @@ namespace Antares.Job.History
                 };
                 */
             });
+
+            Console.WriteLine($"CQRS enabled: {_settings.CurrentValue.HistoryService.CqrsEnabled}");
         }
 
         [UsedImplicitly]

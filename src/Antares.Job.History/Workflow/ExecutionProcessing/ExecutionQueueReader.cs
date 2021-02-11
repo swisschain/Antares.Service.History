@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Antares.Service.History.Core.Settings;
 using Common;
+using Common.Log;
 using Lykke.Common.Log;
 using Lykke.MatchingEngine.Connector.Models.Events;
 using Lykke.RabbitMqBroker.Subscriber;
@@ -14,8 +15,10 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
 {
     public class ExecutionQueueReader : BaseBatchQueueReader<ExecutionEvent>
     {
+        private readonly IReadOnlyList<string> _walletIds;
         private readonly RabbitMqSettings _rabbitMqSettings;
         private readonly ExecutionEventHandler _executionEventHandler;
+        private readonly ILog _log;
 
         public ExecutionQueueReader(
             ILogFactory logFactory,
@@ -26,13 +29,15 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
             ExecutionEventHandler executionEventHandler)
             : base(logFactory, rabbitMqSettings.ConnectionString, prefetchCount, batchCount, walletIds)
         {
+            _walletIds = walletIds;
             _rabbitMqSettings = rabbitMqSettings;
             _executionEventHandler = executionEventHandler;
+            _log = logFactory.CreateLog(this);
         }
 
         protected override string ExchangeName => _rabbitMqSettings.Exchange;
 
-        protected override string QueueName => 
+        protected override string QueueName =>
             $"lykke.spot.matching.engine.out.events.antares-history.{Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.Order}";
 
         protected override string[] RoutingKeys => new[] { ((int)Lykke.MatchingEngine.Connector.Models.Events.Common.MessageType.Order).ToString() };
@@ -46,6 +51,11 @@ namespace Antares.Job.History.Workflow.ExecutionProcessing
                 try
                 {
                     var message = deserializer.Deserialize(basicDeliverEventArgs.Body);
+
+                    if (message.Orders.Any(x => _walletIds.Contains(x.WalletId.ToString())))
+                    {
+                        _log.Info("Adding orders in queue for processing", context: $"sequence number: {message.Header.SequenceNumber}");
+                    }
 
                     Queue.Enqueue(new CustomQueueItem<ExecutionEvent>(message,
                         basicDeliverEventArgs.DeliveryTag, channel));
