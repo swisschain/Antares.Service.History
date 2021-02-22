@@ -23,23 +23,23 @@ namespace Antares.Service.History.GrpcServices
             var pagination = GrpcMapper.EnsurePagination(request.Pagination);
             var data = await _ordersRepository.GetOrdersAsync(
                 Guid.Parse(request.WalletId),
-                new[] { Antares.Service.History.Core.Domain.Enums.OrderType.Limit,
-                    Antares.Service.History.Core.Domain.Enums.OrderType.StopLimit },
-                new[] { Antares.Service.History.Core.Domain.Enums.OrderStatus.Placed,
-                    Antares.Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched,
-                    Antares.Service.History.Core.Domain.Enums.OrderStatus.Pending },
+                new[] { Core.Domain.Enums.OrderType.Limit,
+                    Core.Domain.Enums.OrderType.StopLimit },
+                new[] { Core.Domain.Enums.OrderStatus.Placed,
+                    Core.Domain.Enums.OrderStatus.PartiallyMatched,
+                    Core.Domain.Enums.OrderStatus.Pending },
                 request.AssetPairId,
                 pagination.Offset,
                 pagination.Limit);
 
             var items = data.Select(x => GrpcMapper.MapOrder(x)).ToArray();
 
-            return new GetOrderListResponse()
+            return new GetOrderListResponse
             {
                 Items = { items },
-                Pagination = new PaginatedInt32Response()
+                Pagination = new PaginatedInt32Response
                 {
-                    Count = items.Count(),
+                    Count = items.Length,
                     Offset = pagination.Offset + items.Length,
                 }
             };
@@ -49,9 +49,9 @@ namespace Antares.Service.History.GrpcServices
         {
             var order = await _ordersRepository.GetAsync(Guid.Parse(request.Id));
 
-            return new GetOrderResponse()
+            return new GetOrderResponse
             {
-                Item = GrpcMapper.MapOrder(order)
+                Item = order == null ? null : GrpcMapper.MapOrder(order)
             };
         }
 
@@ -60,32 +60,32 @@ namespace Antares.Service.History.GrpcServices
             var status = request.Status.ToArray();
 
             if (status.Length == 0)
-                status = System.Enum.GetValues(typeof(GrpcContract.Common.OrderStatus)).Cast<GrpcContract.Common.OrderStatus>().ToArray();
+                status = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToArray();
 
             var type = request.Type.ToArray();
 
             if (type.Length == 0)
-                type = System.Enum.GetValues(typeof(GrpcContract.Orders.OrderType)).Cast<GrpcContract.Orders.OrderType>().ToArray();
+                type = Enum.GetValues(typeof(OrderType)).Cast<OrderType>().ToArray();
 
             var mappedType = type.Select(x => x switch
             {
-                GrpcContract.Orders.OrderType.UnknownType => Antares.Service.History.Core.Domain.Enums.OrderType.Unknown,
-                GrpcContract.Orders.OrderType.Market => Antares.Service.History.Core.Domain.Enums.OrderType.Market,
-                GrpcContract.Orders.OrderType.Limit => Antares.Service.History.Core.Domain.Enums.OrderType.Limit,
-                GrpcContract.Orders.OrderType.StopLimit => Antares.Service.History.Core.Domain.Enums.OrderType.StopLimit,
+                OrderType.UnknownType => Core.Domain.Enums.OrderType.Unknown,
+                OrderType.Market => Core.Domain.Enums.OrderType.Market,
+                OrderType.Limit => Core.Domain.Enums.OrderType.Limit,
+                OrderType.StopLimit => Core.Domain.Enums.OrderType.StopLimit,
                 _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
             }).ToArray();
 
             var mappedStatus = status.Select(x => x switch
             {
-                GrpcContract.Common.OrderStatus.UnknownOrder => Antares.Service.History.Core.Domain.Enums.OrderStatus.Unknown,
-                GrpcContract.Common.OrderStatus.Placed => Antares.Service.History.Core.Domain.Enums.OrderStatus.Placed,
-                GrpcContract.Common.OrderStatus.PartiallyMatched => Antares.Service.History.Core.Domain.Enums.OrderStatus.PartiallyMatched,
-                GrpcContract.Common.OrderStatus.Matched => Antares.Service.History.Core.Domain.Enums.OrderStatus.Matched,
-                GrpcContract.Common.OrderStatus.Pending => Antares.Service.History.Core.Domain.Enums.OrderStatus.Pending,
-                GrpcContract.Common.OrderStatus.Cancelled => Antares.Service.History.Core.Domain.Enums.OrderStatus.Cancelled,
-                GrpcContract.Common.OrderStatus.Replaced => Antares.Service.History.Core.Domain.Enums.OrderStatus.Replaced,
-                GrpcContract.Common.OrderStatus.Rejected => Antares.Service.History.Core.Domain.Enums.OrderStatus.Rejected,
+                OrderStatus.UnknownOrder => Core.Domain.Enums.OrderStatus.Unknown,
+                OrderStatus.Placed => Core.Domain.Enums.OrderStatus.Placed,
+                OrderStatus.PartiallyMatched => Core.Domain.Enums.OrderStatus.PartiallyMatched,
+                OrderStatus.Matched => Core.Domain.Enums.OrderStatus.Matched,
+                OrderStatus.Pending => Core.Domain.Enums.OrderStatus.Pending,
+                OrderStatus.Cancelled => Core.Domain.Enums.OrderStatus.Cancelled,
+                OrderStatus.Replaced => Core.Domain.Enums.OrderStatus.Replaced,
+                OrderStatus.Rejected => Core.Domain.Enums.OrderStatus.Rejected,
                 _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
             }).ToArray();
 
@@ -101,10 +101,10 @@ namespace Antares.Service.History.GrpcServices
 
             var items = data.Select(GrpcMapper.MapOrder).ToArray();
 
-            return new GetOrderListResponse()
+            return new GetOrderListResponse
             {
                 Items = { items },
-                Pagination = new PaginatedInt32Response()
+                Pagination = new PaginatedInt32Response
                 {
                     Count = items.Length,
                     Offset = pagination.Offset + items.Length
@@ -123,10 +123,10 @@ namespace Antares.Service.History.GrpcServices
 
             var items = data.Select(GrpcMapper.MapOrder).ToArray();
 
-            return new GetOrderListResponse()
+            return new GetOrderListResponse
             {
                 Items = { items },
-                Pagination = new PaginatedInt32Response()
+                Pagination = new PaginatedInt32Response
                 {
                     Count = items.Length,
                     Offset = pagination.Offset + items.Length
